@@ -3,34 +3,70 @@ import matplotlib.pyplot as plt
 from astropy.stats import LombScargle
 import astropy.units as u
 import numpy as np
+import requests
+from bs4 import BeautifulSoup
+import re
 
 # http://ogledb.astrouw.edu.pl/~ogle/photdb/getobj.php?field=BUL_SC48&starid=144757&db=DIA&points=good
 
 def main():
     '''main program for determining period and epoch of a candidate eclipsing variable'''
-    name = input('What is the name of the candidate variable? ')
-    dat = get_data_from_web()
-    plot_data(dat)
-    # freq = find_freq(dat)                             # skipping this step for now and...
-    freq = 0.1317                                       # giving it a known value for testing purposes
-    folded_df = fold_light_curve(freq, dat)
-    epoch, zeroed = set_min_to_zero(folded_df)
-    phased, ecl_duration = add_phases(zeroed)
-    adj = adjust_epoch(phased, ecl_duration)
-    phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
+    while True:
+        proceed = check_vsx()
+        if proceed == 2:
+            break
+        name = input('What is the name of the candidate variable? ')
+        dat = get_data_from_web()
+        plot_data(dat)
+        # freq = find_freq(dat)                             # skipping this step for now and...
+        freq = 0.1317                                       # giving it a known value for testing purposes
+        folded_df = fold_light_curve(freq, dat)
+        epoch, zeroed = set_min_to_zero(folded_df)
+        phased, ecl_duration = add_phases(zeroed)
+        adj = adjust_epoch(phased, ecl_duration)
+        phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
-    period = round(1 / freq, 4)
-    # print('The period is {} days'.format(period))
-    epoch = round(epoch + period * adj, 3)
-    # print('The epoch is {}'.format(epoch))
+        period = round(1 / freq, 4)
+        # print('The period is {} days'.format(period))
+        epoch = round(epoch + period * adj, 3)
+        # print('The epoch is {}'.format(epoch))
 
-    plt.scatter(phased['Phase'], phased['mag'])
-    plt.gca().invert_yaxis()
-    plt.ylabel('mag')
-    plt.xlabel('Phase')
-    plt.title(name + ' (P = ' + str(period) + ' d)')
-    plt.grid()
-    plt.show()
+        plt.scatter(phased['Phase'], phased['mag'])
+        plt.gca().invert_yaxis()
+        plt.ylabel('mag')
+        plt.xlabel('Phase')
+        plt.title(name + ' (P = ' + str(period) + ' d)')
+        plt.grid()
+        plt.show()
+        break
+    print('Good bye...')
+
+
+def check_vsx() -> object:
+    ra = '17.473532'
+    # ra = input("What is the object's RA? ")
+    DEC = '-40.22071'
+    # DEC = input("What is the object's DEC? ")
+    RA = float(ra) * 360 / 24  # convert to decimal degrees
+    coords = str(RA) + '+' + DEC
+
+    url = 'http://www.aavso.org/vsx/index.php?view=results.get&format=d&order=9&coords=' + coords
+    print('Checking coordinates in VSX...')
+
+    r = requests.get(url)
+    html_doc = r.text
+    soup = BeautifulSoup(html_doc, 'lxml')
+    table = soup.find_all('table')[10]              # grab the table with the relevant object info
+
+    all_tr = table.find_all('tr')                   # type = ResultSet
+    first_entry = all_tr[2]                         # type = Tag
+    results = first_entry.get_text().lstrip(' ')    # type = string
+    split_string = re.split(r'\s+', results)
+    print('The object {} {} is located {} arcminutes from the coordinates you entered'.format(split_string[2], \
+                                                                                              split_string[3], \
+                                                                                              split_string[1]))
+    answer = int(input('Do you wish to proceed? Enter 1 for Yes or 2 for No '))
+    return answer
 
 
 def get_data_from_web():
@@ -46,7 +82,7 @@ def plot_data(df):
     df.plot(kind='scatter', x='HJD', y='mag')
     plt.gca().invert_yaxis()
     plt.title('Visual check of raw data')
-    plt.show(block=True)
+    plt.show()
 
 
 def find_freq(dt):
@@ -120,7 +156,7 @@ def add_phases(zd):
     plt.minorticks_on()
     plt.grid(b=True, which='major', color='red', linestyle='-')
     plt.grid(b=True, which='minor', color='green', linestyle='-')
-    plt.title('LOOK AT THE PHASE OF THE ECLIPSE')
+    plt.title('ESTIMATE THE DURATION OF THE PRIMARY ECLIPSE')
     plt.show()
 
     duration = input('What is the duration of the phase of the primary eclipse? ')
