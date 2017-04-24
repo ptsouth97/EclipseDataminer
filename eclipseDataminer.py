@@ -6,24 +6,23 @@ import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import re
+import os
 
-# http://ogledb.astrouw.edu.pl/~ogle/photdb/getobj.php?field=BUL_SC48&starid=144757&db=DIA&points=good
 
 def main():
-    '''main program for determining period and epoch of a candidate eclipsing variable'''
+    '''main program loop for determining period and epoch of a candidate eclipsing variable'''
     while True:
-        proceed = check_vsx()
+        proceed, ra_d, dec_d = check_vsx()
         if proceed == 2:
             break
-        name = input('What is the name of the candidate variable? ')
-        dat = get_data_from_web()
-        plot_data(dat)
-        # freq = find_freq(dat)                             # skipping this step for now and...
-        freq = 0.1317                                       # giving it a known value for testing purposes
-        folded_df = fold_light_curve(freq, dat)
+
+        name = get_info()
+        dat = get_data_from_web(name)
+        plot_raw_data(dat, name)
+        freq, folded_df = find_freq(dat, name)
         epoch, zeroed = set_min_to_zero(folded_df)
-        phased, ecl_duration = add_phases(zeroed)
-        adj = adjust_epoch(phased, ecl_duration)
+        phased = add_phases(zeroed)
+        adj = adjust_epoch(phased)
         phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
         period = round(1 / freq, 4)
@@ -31,22 +30,24 @@ def main():
         epoch = round(epoch + period * adj, 3)
         # print('The epoch is {}'.format(epoch))
 
-        plt.scatter(phased['Phase'], phased['mag'])
+        plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
         plt.gca().invert_yaxis()
-        plt.ylabel('mag')
+        plt.ylabel('Ic-mag')
         plt.xlabel('Phase')
-        plt.title(name + ' (P = ' + str(period) + ' d)')
+        plt.title('OGLEII ' + name + ' (P = ' + str(period) + ' d)')
         plt.grid()
+        plt_name = name + '_Phase_Diagram'
+        plt.savefig(plt_name)
         plt.show()
         break
     print('Good bye...')
 
 
 def check_vsx() -> object:
-    ra = '17.473532'
-    # ra = input("What is the object's RA? ")
-    DEC = '-40.22071'
-    # DEC = input("What is the object's DEC? ")
+    '''Checks coordinates in VSX to see if there is already an identified object at that location'''
+
+    ra = input("What is the object's RA in decimal hours? ")            # test value:  ra = '17.473532'
+    DEC = input("What is the object's DEC in decimal degrees? ")        # test value:  DEC = '-40.22071'
     RA = float(ra) * 360 / 24  # convert to decimal degrees
     coords = str(RA) + '+' + DEC
 
@@ -56,62 +57,139 @@ def check_vsx() -> object:
     r = requests.get(url)
     html_doc = r.text
     soup = BeautifulSoup(html_doc, 'lxml')
-    table = soup.find_all('table')[10]              # grab the table with the relevant object info
+    table = soup.find_all('table')[10]                                  # grab the table with the relevant object info
 
-    all_tr = table.find_all('tr')                   # type = ResultSet
-    first_entry = all_tr[2]                         # type = Tag
-    results = first_entry.get_text().lstrip(' ')    # type = string
+    all_tr = table.find_all('tr')                                       # type = ResultSet
+    first_entry = all_tr[2]                                             # type = Tag
+    results = first_entry.get_text().lstrip(' ')                        # type = string
     split_string = re.split(r'\s+', results)
     print('The object {} {} is located {} arcminutes from the coordinates you entered'.format(split_string[2], \
                                                                                               split_string[3], \
                                                                                               split_string[1]))
     answer = int(input('Do you wish to proceed? Enter 1 for Yes or 2 for No '))
-    return answer
+    return answer, RA, DEC
 
 
-def get_data_from_web():
+def get_info():
+    '''store basic information about the object of interest'''
+    nm = input('What is the name of the candidate variable? ')
+    new_nm = nm.replace(" ", "_")
+    newpath = r'C:\Users\Blake\Transporter\Personal Documents' \
+              r'\Hobbies and Interests\a. Astronomy\1. AAVSO\Data Mining\Suspects\New stars\\' + new_nm
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)                                                # set up new directory with name of object
+
+    os.chdir(newpath)
+    # create new data frame that will hold the information discovered
+    return new_nm
+
+def check_simbad():
+    '''checks SIMBAD database for cross-IDs'''
+    pass
+
+
+def get_data_from_web(the_name):
     '''Returns a .dat file from OGLE database as a dataframe'''
-    url = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/data//bul_sc48_i_144757.dat'   # test url
+    base = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/data//'
+    the_name = the_name.lower()
+    url = base + the_name + '.dat'
     df = pd.read_csv(url, delim_whitespace=True)                                    # create data frame
     df.columns = ['HJD', 'mag', 'mag_err', 'photometry_flag', 'frame_grade']        # assign column names from OGLE
+    df.to_csv('TEST.csv')
     return df
 
 
-def plot_data(df):
+def plot_raw_data(df, nme):
     '''plots the raw data as a test to ensure data was imported properly'''
+
     df.plot(kind='scatter', x='HJD', y='mag')
     plt.gca().invert_yaxis()
-    plt.title('Visual check of raw data')
+    plt.title(nme + ' Raw Data')
+    plot_name = nme + ' Raw Data.png'
+    plt.savefig(plot_name)
     plt.show()
 
 
-def find_freq(dt):
-    '''Uses astropy's LombScargle method to search for frequency with the highest power'''
+def find_freq(dt, n):
+    '''Uses astropy's LombScargle method to search for frequency with the highest power and then visually check
+    if it produces a viable phase plot'''
+
     t = dt['HJD']
     t_days = t * u.day
     y = dt['mag']
     y_mags = y * u.mag
     #frequency = np.linspace(0.1, 0.2, 10000)
-    frequency, power = LombScargle(t_days, y_mags).autopower(minimum_frequency=0.13,
-                                                             maximum_frequency=0.132,
-                                                             samples_per_peak=1000)
-    '''plt.figure(1)
-    plt.subplot(211)
-    plt.plot(frequency, power)
-    plt.xlabel('Frequency')
-    plt.ylabel('Lomb-Scargle Power')
-    # plt.show()'''
-    best_frequency = frequency[np.argmax(power)]
-    return best_frequency
 
+    while True:
 
-def fold_light_curve(fq, dataframe):
-    '''Creates a folded light curve (phase 0 - 1) based on frequency found with find_freq'''
+        while True:
+            choice = input('Would you like to modify arguments for Lomb Scargle? 1=Yes, 2=No ')
 
-    # create a new column in the dataframe to hold the phase values generated from the frequency
-    dataframe.loc[:, 'Phase'] = dataframe.loc[:, 'HJD'].apply(lambda x: x*fq%1)
+            if choice.strip() == '1':
+                print('What do you want to do?')
+                print('1 = Specify min & max frequency')
+                print('2 = Specify Nyquist factor')
+                print('3 = Specify the frequency')
+                print('4 = Double the frequency')
+                print('5 = Halve the frequency')
+                choice2 = input('What is your choice? ')
+                if choice2.strip() == '1':
+                    min_freq = float(input('What is the minimum frequency? '))
+                    max_freq = float(input('What is the maximum frequency? '))
+                    spp = float(input('How many samples per peak? '))
+                    frequency, power = LombScargle(t_days, y_mags).autopower(minimum_frequency= min_freq,
+                                                                         maximum_frequency= max_freq,
+                                                                         samples_per_peak= spp)
+                    best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
+                    break
 
-    return dataframe
+                if choice2.strip() == '2':
+                    nyq = int(input('What Nyquist factor do you want to try? '))
+                    frequency, power = LombScargle(t_days, y_mags).autopower(nyquist_factor=nyq)
+                    best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
+                    break
+
+                if choice2.strip() == '3':
+                    best_frequency = float(input('What frequency do you want to try? '))
+                    break
+
+                if choice2.strip() == '4':
+                    best_frequency = best_frequency * 2
+                    break
+
+                if choice2.strip() == '5':
+                    best_frequency = best_frequency / 2
+                    break
+            if choice.strip() == '2':
+                frequency, power = LombScargle(t_days, y_mags).autopower()
+                best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
+                break
+            else:
+                print('Please enter a valid choice.')
+
+        plt.figure(1)
+        plt.subplot(211)
+        plt.plot(frequency, power, color='black')
+        plt.axvline(x=best_frequency, color='blue', linestyle='dashed')  # plot vertical line at best frequency
+        plt.xlabel('Frequency')
+        plt.ylabel('Lomb-Scargle Power')
+        plt.title('Frequency = ' + str(best_frequency))
+        figname = n + 'Periodiagram'
+        plt.savefig(figname)
+
+        # create a new column in the dataframe to hold the phase values generated from the frequency
+        dt.loc[:, 'Phase'] = dt.loc[:, 'HJD'].apply(lambda x: x*best_frequency%1)
+
+        plt.subplot(212)
+        plt.scatter(dt['Phase'], dt['mag'], color='black', s=5)  # 's' is for marker size
+        plt.gca().invert_yaxis()
+        plt.ylabel('Ic-mag')
+        plt.xlabel('Phase')
+        plt.show()
+        satisf = int(input('Is the phase plot satisfactory? 1=Yes or 2=No '))
+        if satisf == 1:
+            break
+    return best_frequency, dt
 
 
 def set_min_to_zero(folded):
@@ -149,9 +227,9 @@ def add_phases(zd):
     update1 = zd.append(select_last_quartile, ignore_index=True)
     update2 = update1.append(select_first_quartile, ignore_index=True)
 
-    plt.scatter(update2['Phase'], update2['mag'])
+    plt.scatter(update2['Phase'], update2['mag'], s=10)
     plt.gca().invert_yaxis()
-    plt.ylabel('mag')
+    plt.ylabel('Ic-mag')
     plt.xlabel('Phase')
     plt.minorticks_on()
     plt.grid(b=True, which='major', color='red', linestyle='-')
@@ -159,49 +237,54 @@ def add_phases(zd):
     plt.title('ESTIMATE THE DURATION OF THE PRIMARY ECLIPSE')
     plt.show()
 
-    duration = input('What is the duration of the phase of the primary eclipse? ')
-    return update2, duration
+    return update2
 
 
-def adjust_epoch(theDf, dur):
+def adjust_epoch(theDf):
     '''Plots just the primary eclipse data points. Because the minimum magnitude observed does not necessarily
     match the true minimum at phase 0, the data points need to be adjusted by looking at the offset of the shape of
     the eclipse from phase 0. To do this, two nearly equivalent magnitude points are located on opposite sides of
     the parabola and the midway point between them is calculated.  This value represents the needed offset'''
-    theDf = theDf.sort_values('Phase')
-    primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
-    primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
-    primary_eclipse.reset_index(drop=True, inplace=True)    # re-order the index starting at 0
-    min_dp = primary_eclipse.mag.idxmax()   # min_dp is the index of the minima of the eclipse, i.e., max value
-    offset = 0                              # initialize variable for the offset that will be returned
-    flag = 0                                # flag variable will signal when to break out of loop once match is found
-    mk_1 = 0                                # mk_1 will hold the row location for the first match of the pair
-    mk_2 = 0                                # mk_2 will hold the row location for the second match of the pair
-    for i in range(0, min_dp + 1):          # check data points from index 0 up to the index of the minima (left side)
-        if flag == 1:  break
-        for j in range(0, len(primary_eclipse.index) - min_dp): # for each point on left, check every right side point
-            if flag == 1: break
-            mag_diff = abs(primary_eclipse.iloc[i][1] - primary_eclipse.iloc[-j-1][1])
-            if mag_diff < 0.02:     # if the difference in mag is this small, you've found matching points on both sides
-                offset = primary_eclipse.iloc[i][5] + \
-                         ((primary_eclipse.iloc[len(primary_eclipse.index) - j - 1][5] - primary_eclipse.iloc[i][5])/2)
-                mk_1 = i
-                mk_2 = len(primary_eclipse.index) - j - 1
-                flag = 1
 
-    if offset == 0:
-        print('No match found')
+    while True:
+        dur = input('What is the duration of the phase of the primary eclipse? ')
+        theDf = theDf.sort_values('Phase')
+        primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
+        primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
+        primary_eclipse.reset_index(drop=True, inplace=True)    # re-order the index starting at 0
+        min_dp = primary_eclipse.mag.idxmax()   # min_dp is the index of the minima of the eclipse, i.e., max value
+        offset = 0                              # initialize variable for the offset that will be returned
+        flag = 0                                # flag variable will signal when to break out of loop once match is found
+        mk_1 = 0                                # mk_1 will hold the row location for the first match of the pair
+        mk_2 = 0                                # mk_2 will hold the row location for the second match of the pair
+        for i in range(0, min_dp + 1):          # check data points from index 0 up to the index of the minima (left side)
+            if flag == 1:  break
+            for j in range(0, len(primary_eclipse.index) - min_dp): # for each point on left, check every right side point
+                if flag == 1: break
+                mag_diff = abs(primary_eclipse.iloc[i][1] - primary_eclipse.iloc[-j-1][1])
+                if mag_diff < 0.02:     # if the difference in mag is this small, you've found matching points on both sides
+                    offset = primary_eclipse.iloc[i][5] + \
+                             ((primary_eclipse.iloc[len(primary_eclipse.index) - j - 1][5] - primary_eclipse.iloc[i][5])/2)
+                    mk_1 = i
+                    mk_2 = len(primary_eclipse.index) - j - 1
+                    flag = 1
 
-    plt.scatter(primary_eclipse['Phase'], primary_eclipse['mag'])
-    plt.scatter(primary_eclipse.iloc[mk_1][5], primary_eclipse.iloc[mk_1][1], color='yellow')
-    plt.scatter(primary_eclipse.iloc[mk_2][5], primary_eclipse.iloc[mk_2][1], color='yellow')
-    plt.gca().invert_yaxis()
-    plt.ylabel('mag')
-    plt.xlabel('Phase')
-    plt.title('Red line should appear half-way between two yellow points')
-    plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
-    plt.grid()
-    plt.show()
+        if offset == 0:
+            print('No match found')
+
+        plt.scatter(primary_eclipse['Phase'], primary_eclipse['mag'])
+        plt.scatter(primary_eclipse.iloc[mk_1][5], primary_eclipse.iloc[mk_1][1], color='yellow')
+        plt.scatter(primary_eclipse.iloc[mk_2][5], primary_eclipse.iloc[mk_2][1], color='yellow')
+        plt.gca().invert_yaxis()
+        plt.ylabel('Ic-mag')
+        plt.xlabel('Phase')
+        plt.title('Red line should appear half-way between two yellow points')
+        plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
+        plt.grid()
+        plt.show()
+        satisfactory = int(input('Is the location of the vertical offset line satisfactory? 1 for Yes, or 2 for No '))
+        if satisfactory == 1:
+            break
     return offset
 
 
