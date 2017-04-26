@@ -1,12 +1,12 @@
 # EclipseDataminer
 
-This application's purpose is to analyze astronomical objects' photometry measurements from a dataset to determine if the object is an eclipsing binary star.
+This application's purpose is to analyze astronomical objects' photometry measurements from a dataset to determine if the object is an [eclipsing binary star](http://www.physics.sfasu.edu/astro/ebstar/ebstar.html).
 
 ## Workflow ##
 * User must indepedently locate a suspected eclipsing binary in the [OGLE II photometry database](http://ogledb.astrouw.edu.pl/~ogle/photdb/)
 * The coordinates of the suspect are entered in decimal hours and decimal degrees
 * The application checks the [AAVSO's Variable Star Index (VSX)](https://www.aavso.org/vsx/) to check if there is already a variable at that location
-* If not, data from the OGLEII database is downloaded to a dataframe and plotted as HJD vs magnitude
+* If not, data from the OGLE II database is downloaded to a dataframe and plotted as magnitude vs Julian date
 * Next, a frequency search is performed using the [Lomb-Scargle module from Astropy](http://docs.astropy.org/en/stable/stats/lombscargle.html)
 * After the frequency is found, the folded light curve (phase plot) is generated
 * The primary eclipse minima is set to phase zero and all other points are adjusted accordingly
