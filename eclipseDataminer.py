@@ -1,11 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from astropy.stats import LombScargle
-import astropy.units as u
-import numpy as np
-import requests
-from bs4 import BeautifulSoup
 import os
+import object_info, catalogs, lombscargle
 
 
 def main():
@@ -28,14 +24,14 @@ def main():
         if exit != '1':
             break
 
-        proceed, ra_d, dec_d = check_vsx()
+        proceed, ra_d, dec_d = catalogs.check_vsx()
         if proceed != '1':
             break
 
-        name, url, final_df = get_info()
-        dat = get_data_from_web(url)
+        name, url, final_df = object_info.set_name()
+        dat = object_info.get_data_from_web(url)
         plot_raw_data(dat, name)
-        freq, folded_df = find_freq(dat, name)
+        freq, folded_df = lombscargle.find_freq(dat, name)
         epoch, zeroed = set_min_to_zero(folded_df)
         phased = add_phases(zeroed)
         adj = adjust_epoch(phased)
@@ -61,94 +57,6 @@ def main():
     print('Good bye...')
 
 
-def check_vsx() -> object:
-    '''Checks coordinates in VSX to see if there is already an identified object at that location'''
-
-    while True:
-        ra = input("What is the object's RA in decimal hours? ").strip()         # test value:  ra = '17.473532'
-        if float(ra) <= 24 and float(ra) >= 0:
-            break
-        else:
-            print('Please enter a valid RA between 0 and 24 decimal hours')
-
-    while True:
-        DEC = input("What is the object's DEC in decimal degrees? ").strip()  # test value:  DEC = '-40.22071'
-        if float(DEC) <= 90 and float(DEC) >= -90:
-            break
-        else:
-            print('Please enter a valid DEC between -90 and 90 decimal degrees')
-
-    RA = float(ra) * 360 / 24  # convert to decimal degrees
-    coords = str(RA) + '+' + DEC
-
-    url = 'http://www.aavso.org/vsx/index.php?view=results.get&format=d&order=9&coords=' + coords
-    print('Checking coordinates in VSX...')
-    print('')
-    r = requests.get(url)
-    html_doc = r.text
-    soup = BeautifulSoup(html_doc, 'lxml')
-    table = soup.find_all('table')[10]                                  # grab the table with the relevant object info
-
-    all_tr = table.find_all('tr')                                       # type = ResultSet
-    first_entry = all_tr[2]                                             # type = Tag
-    results = first_entry.get_text().lstrip(' ')                        # type = string
-    dist = results[3:7]
-    id = results[11:37].strip()
-
-    if results[3:8] == 'There':
-        print('No nearby objects were found')
-    else:
-        print('The VSX object {} is located {} arcmin from the coordinates you entered'.format(id, dist))
-    print('')
-    answer = input('Do you wish to proceed? [1]=Yes, [any other key]=No ').strip()
-    print('')
-    return answer, RA, DEC
-
-
-def get_info():
-    '''store basic information about the object of interest'''
-    while True:
-        field_name = input('What is the FIELD NAME of the candidate variable? ').strip()
-        field_num = input('What is the FIELD NUMBER of the candidate variable? ').strip()
-        star_id = input('What is the STAR ID of the candidate variable ').strip()
-        print('')
-        url_id = field_name.lower() + '_' + field_num.lower() + '_i_' + star_id.lower() + '.dat'
-        path_id = 'OGLEII_' + field_name.upper() + '-' + field_num.upper() + '_' + star_id
-
-        print('You entered: ' + path_id + ' and the url_id is ' + url_id)
-        print('')
-        correct = input('Is this correct?  [1]=Yes, [any other key]=No ').strip()
-        if correct == '1':
-            break
-
-    newpath = r'C:\Users\Blake\Transporter\Personal Documents' \
-              r'\Hobbies and Interests\a. Astronomy\1. AAVSO\Data Mining\Suspects\New stars\\' + path_id
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)                                                # set up new directory with name of object
-
-    os.chdir(newpath)
-
-    # create new data frame that will hold the information discovered
-    columns = ['name', 'period', 'epoch']
-    new_df = pd.DataFrame(columns=columns, index=range(0, 1))
-
-    return path_id, url_id, new_df
-
-def check_VizieR():
-    '''checks SIMBAD database for cross-IDs'''
-    pass
-
-
-def get_data_from_web(the_name):
-    '''Returns a .dat file from OGLE database as a dataframe'''
-    base = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/data//'
-    url = base + the_name
-    df = pd.read_csv(url, delim_whitespace=True)                                    # create data frame
-    df.columns = ['HJD', 'mag', 'mag_err', 'photometry_flag', 'frame_grade']        # assign column names from OGLE
-    df.to_csv(the_name + '_RAW_DATA.csv')
-    return df
-
-
 def plot_raw_data(df, nme):
     '''plots the raw data as a test to ensure data was imported properly'''
 
@@ -158,125 +66,6 @@ def plot_raw_data(df, nme):
     plot_name = nme + ' Raw Data.png'
     plt.savefig(plot_name)
     plt.show()
-
-
-def find_freq(dt, n):
-    '''Uses astropy's LombScargle method to search for frequency with the highest power and then visually check
-    if it produces a viable phase plot.  For more see http://docs.astropy.org/en/stable/stats/lombscargle.html'''
-
-    t = dt['HJD']
-    t_days = t * u.day
-    y = dt['mag']
-    y_mags = y * u.mag
-
-    while True:
-        print('########################################')
-        print('#           PERIOD ANALYSIS            #')
-        print('########################################')
-        print('')
-        print('Lomb Scargle arguments set to default')
-        print('')
-        method = 'auto'
-        numterms = 1
-        nyq = 5
-        spp = 5
-        mod = 0
-
-        while True:
-            choice = input('Would you like to modify arguments for Lomb Scargle? 1=Yes, any other key=No ')
-
-            if choice.strip() == '1':
-                print('')
-                print('What do you want to do?')
-                print('1 = Specify method')
-                print('2 = Specify nterms')
-                print('3 = Specify min & max frequency,')
-                print('4 = Specify Nyquist factor')
-                print('5 = Specify the frequency')
-                print('')
-                choice2 = input('What is your choice? ')
-
-                # method
-                if choice2.strip() == '1':
-                    method = input("What method do you want to use? ('auto', 'fast', 'slow', 'cython', 'chi2', "
-                                   "fastchi2', or 'scipy') ").strip().lower()
-
-                # nterms
-                if choice2.strip() == '2':
-                    if method == 'chi2' or method == 'fastchi2':
-                        numterms = int(input('How many Fourier terms do you want to use in the model? ').strip())
-                    else:
-                        print("Number of terms 'nterms' can only be modified for methods 'chi2' or 'fastchi2'")
-
-                # min/max frequency
-                if choice2.strip() == '3':
-                    min_freq = float(input('What is the minimum frequency? ').strip())
-                    max_freq = float(input('What is the maximum frequency? ').strip())
-                    spp = float(input('How many samples per peak? ').strip())
-                    mod = 1
-
-                # Nyquist
-                if choice2.strip() == '4':
-                    nyq = int(input('What Nyquist factor do you want to try? '))
-                    mod = 2
-                    break
-
-                # specific frequency
-                if choice2.strip() == '5':
-                    best_frequency = float(input('What frequency do you want to try? '))
-                    mod = 3
-                    break
-
-            else:
-                # frequency, power = LombScargle(t_days, y_mags, nterms=2).autopower(method='chi2')
-                # power_sorted = power.argsort()
-                # best_frequency = frequency[power_sorted[-2]]
-                # best_frequency = frequency[np.argmax(power)]  # most likely frequency is where the power is highest
-                break
-
-        if mod == 0:
-            frequency, power = LombScargle(t_days, y_mags, nterms=numterms).autopower(method=method)
-
-        if mod == 1:
-            frequency, power = LombScargle(t_days, y_mags, nterms=numterms).autopower(method=method,
-                                                                                 minimum_frequency=min_freq,
-                                                                                 maximum_frequency = max_freq,
-                                                                                 samples_per_peak = spp)
-
-        if mod == 2:
-            frequency, power = LombScargle(t_days, y_mags).autopower(nyquist_factor=nyq)
-
-        if mod == 3:
-            frequency, power = LombScargle(t_days, y_mags).power(best_frequency)
-
-        # power_sorted = power.argsort()
-        # best_frequency = frequency[power_sorted[-1]]
-        best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
-        plt.figure(1)
-        plt.subplot(211)
-        plt.plot(frequency, power, color='black')
-        plt.axvline(x=best_frequency, color='blue', linestyle='dashed')  # plot vertical line at best frequency
-        plt.xlabel('Frequency')
-        plt.ylabel('Lomb-Scargle Power')
-        plt.title('Frequency = ' + str(best_frequency))
-        figname = n + 'Periodiagram'
-        plt.savefig(figname)
-
-        # create a new column in the dataframe to hold the phase values generated from the frequency
-        dt.loc[:, 'Phase'] = dt.loc[:, 'HJD'].apply(lambda x: x*best_frequency%1)
-
-        plt.subplot(212)
-        plt.scatter(dt['Phase'], dt['mag'], color='black', s=5)  # 's' is for marker size
-        plt.gca().invert_yaxis()
-        plt.ylabel('Ic-mag')
-        plt.xlabel('Phase')
-        plt.show()
-        print('')
-        satisf = int(input('Is the phase plot satisfactory? 1=Yes or 2=No '))
-        print('')
-        if satisf == 1:
-            break
-    return best_frequency, dt
 
 
 def set_min_to_zero(folded):
