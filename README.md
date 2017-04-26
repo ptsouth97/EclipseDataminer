@@ -2,7 +2,7 @@
 
 This application's purpose is to analyze astronomical objects photometry measurements from a dataset to determine if the object is an eclipsing binary star.
 
-##Workflow##
+#Workflow#
 * User must indepedently locate a suspected eclipsing binary in the [OGLE II photometry database](http://ogledb.astrouw.edu.pl/~ogle/photdb/)
 * The coordinates of the suspect are entered in decimal hours and decimal degrees
 * The application checks the [AAVSO's Variable Star Index (VSX)](https://www.aavso.org/vsx/) to check if there is already a variable at that location
