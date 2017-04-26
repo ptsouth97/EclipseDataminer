@@ -1,6 +1,6 @@
 # EclipseDataminer
 
-This application's purpose is to analyze astronomical objects photometry measurements from a dataset to determine if the object is an eclipsing binary star.
+This application's purpose is to analyze astronomical objects' photometry measurements from a dataset to determine if the object is an eclipsing binary star.
 
 ## Workflow ##
 * User must indepedently locate a suspected eclipsing binary in the [OGLE II photometry database](http://ogledb.astrouw.edu.pl/~ogle/photdb/)
@@ -17,6 +17,7 @@ This application's purpose is to analyze astronomical objects photometry measure
 ## Examples ##
 
 The program can be tested using these known eclipsers from the OGLE database:
+* [OGLEII BUL-SC48 144757](https://www.aavso.org/vsx/index.php?view=detail.top&oid=409584)
 * [OGLEII DIA BUL-SC43 V840](https://www.aavso.org/vsx/index.php?view=detail.top&oid=409515)
 * [OGLEII BUL-SC01 V1070](https://www.aavso.org/vsx/index.php?view=detail.top&oid=356262)
 * [OGLEII BUL-SC10 164819](https://www.aavso.org/vsx/index.php?view=detail.top&oid=356102)
