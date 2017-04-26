@@ -5,19 +5,35 @@ import astropy.units as u
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
-import re
 import os
 
 
 def main():
-    '''main program loop for determining period and epoch of a candidate eclipsing variable'''
+    '''main program loop for determining period and epoch of a candidate eclipsing variable
+    and then graphing its corresponding periodiagram and phase plot'''
+
+    print('########################################')
+    print('#         ECLIPSE DATA MINER           #')
+    print('########################################')
+    print('')
+    print('*****       ******   *****       ******')
+    print('     *     *      * *     *     *')
+    print('      *   *        *       *   *')
+    print('       * *                  * *')
+    print('        *                    *')
+
     while True:
-        proceed, ra_d, dec_d = check_vsx()
-        if proceed == 2:
+        exit = input("Enter [1] to load an object's data or any other key to exit ").strip()
+        print('')
+        if exit != '1':
             break
 
-        name = get_info()
-        dat = get_data_from_web(name)
+        proceed, ra_d, dec_d = check_vsx()
+        if proceed != '1':
+            break
+
+        name, url, final_df = get_info()
+        dat = get_data_from_web(url)
         plot_raw_data(dat, name)
         freq, folded_df = find_freq(dat, name)
         epoch, zeroed = set_min_to_zero(folded_df)
@@ -26,34 +42,48 @@ def main():
         phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
         period = round(1 / freq, 4)
-        # print('The period is {} days'.format(period))
         epoch = round(epoch + period * adj, 3)
-        # print('The epoch is {}'.format(epoch))
+        final_df.iloc[0][0] = name
+        final_df.iloc[0][1] = period
+        final_df.iloc[0][2] = epoch
+        final_df.to_csv(name + '_Parameters.csv')
 
         plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
         plt.gca().invert_yaxis()
         plt.ylabel('Ic-mag')
         plt.xlabel('Phase')
-        plt.title('OGLEII ' + name + ' (P = ' + str(period) + ' d)')
+        plt.title(name + ' (P = ' + str(period) + ' d)')
         plt.grid()
         plt_name = name + '_Phase_Diagram'
         plt.savefig(plt_name)
         plt.show()
-        break
+        
     print('Good bye...')
 
 
 def check_vsx() -> object:
     '''Checks coordinates in VSX to see if there is already an identified object at that location'''
 
-    ra = input("What is the object's RA in decimal hours? ")            # test value:  ra = '17.473532'
-    DEC = input("What is the object's DEC in decimal degrees? ")        # test value:  DEC = '-40.22071'
+    while True:
+        ra = input("What is the object's RA in decimal hours? ").strip()         # test value:  ra = '17.473532'
+        if float(ra) <= 24 and float(ra) >= 0:
+            break
+        else:
+            print('Please enter a valid RA between 0 and 24 decimal hours')
+
+    while True:
+        DEC = input("What is the object's DEC in decimal degrees? ").strip()  # test value:  DEC = '-40.22071'
+        if float(DEC) <= 90 and float(DEC) >= -90:
+            break
+        else:
+            print('Please enter a valid DEC between -90 and 90 decimal degrees')
+
     RA = float(ra) * 360 / 24  # convert to decimal degrees
     coords = str(RA) + '+' + DEC
 
     url = 'http://www.aavso.org/vsx/index.php?view=results.get&format=d&order=9&coords=' + coords
     print('Checking coordinates in VSX...')
-
+    print('')
     r = requests.get(url)
     html_doc = r.text
     soup = BeautifulSoup(html_doc, 'lxml')
@@ -62,28 +92,49 @@ def check_vsx() -> object:
     all_tr = table.find_all('tr')                                       # type = ResultSet
     first_entry = all_tr[2]                                             # type = Tag
     results = first_entry.get_text().lstrip(' ')                        # type = string
-    split_string = re.split(r'\s+', results)
-    print('The object {} {} is located {} arcminutes from the coordinates you entered'.format(split_string[2], \
-                                                                                              split_string[3], \
-                                                                                              split_string[1]))
-    answer = int(input('Do you wish to proceed? Enter 1 for Yes or 2 for No '))
+    dist = results[3:7]
+    id = results[11:37].strip()
+
+    if results[3:8] == 'There':
+        print('No nearby objects were found')
+    else:
+        print('The VSX object {} is located {} arcmin from the coordinates you entered'.format(id, dist))
+    print('')
+    answer = input('Do you wish to proceed? [1]=Yes, [any other key]=No ').strip()
+    print('')
     return answer, RA, DEC
 
 
 def get_info():
     '''store basic information about the object of interest'''
-    nm = input('What is the name of the candidate variable? ')
-    new_nm = nm.replace(" ", "_")
+    while True:
+        field_name = input('What is the FIELD NAME of the candidate variable? ').strip()
+        field_num = input('What is the FIELD NUMBER of the candidate variable? ').strip()
+        star_id = input('What is the STAR ID of the candidate variable ').strip()
+        print('')
+        url_id = field_name.lower() + '_' + field_num.lower() + '_i_' + star_id.lower() + '.dat'
+        path_id = 'OGLEII_' + field_name.upper() + '-' + field_num.upper() + '_' + star_id
+
+        print('You entered: ' + path_id + ' and the url_id is ' + url_id)
+        print('')
+        correct = input('Is this correct?  [1]=Yes, [any other key]=No ').strip()
+        if correct == '1':
+            break
+
     newpath = r'C:\Users\Blake\Transporter\Personal Documents' \
-              r'\Hobbies and Interests\a. Astronomy\1. AAVSO\Data Mining\Suspects\New stars\\' + new_nm
+              r'\Hobbies and Interests\a. Astronomy\1. AAVSO\Data Mining\Suspects\New stars\\' + path_id
     if not os.path.exists(newpath):
         os.makedirs(newpath)                                                # set up new directory with name of object
 
     os.chdir(newpath)
-    # create new data frame that will hold the information discovered
-    return new_nm
 
-def check_simbad():
+    # create new data frame that will hold the information discovered
+    columns = ['name', 'period', 'epoch']
+    new_df = pd.DataFrame(columns=columns, index=range(0, 1))
+
+    return path_id, url_id, new_df
+
+def check_VizieR():
     '''checks SIMBAD database for cross-IDs'''
     pass
 
@@ -91,11 +142,10 @@ def check_simbad():
 def get_data_from_web(the_name):
     '''Returns a .dat file from OGLE database as a dataframe'''
     base = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/data//'
-    the_name = the_name.lower()
-    url = base + the_name + '.dat'
+    url = base + the_name
     df = pd.read_csv(url, delim_whitespace=True)                                    # create data frame
     df.columns = ['HJD', 'mag', 'mag_err', 'photometry_flag', 'frame_grade']        # assign column names from OGLE
-    df.to_csv('TEST.csv')
+    df.to_csv(the_name + '_RAW_DATA.csv')
     return df
 
 
@@ -112,61 +162,96 @@ def plot_raw_data(df, nme):
 
 def find_freq(dt, n):
     '''Uses astropy's LombScargle method to search for frequency with the highest power and then visually check
-    if it produces a viable phase plot'''
+    if it produces a viable phase plot.  For more see http://docs.astropy.org/en/stable/stats/lombscargle.html'''
 
     t = dt['HJD']
     t_days = t * u.day
     y = dt['mag']
     y_mags = y * u.mag
-    #frequency = np.linspace(0.1, 0.2, 10000)
 
     while True:
+        print('########################################')
+        print('#           PERIOD ANALYSIS            #')
+        print('########################################')
+        print('')
+        print('Lomb Scargle arguments set to default')
+        print('')
+        method = 'auto'
+        numterms = 1
+        nyq = 5
+        spp = 5
+        mod = 0
 
         while True:
-            choice = input('Would you like to modify arguments for Lomb Scargle? 1=Yes, 2=No ')
+            choice = input('Would you like to modify arguments for Lomb Scargle? 1=Yes, any other key=No ')
 
             if choice.strip() == '1':
+                print('')
                 print('What do you want to do?')
-                print('1 = Specify min & max frequency')
-                print('2 = Specify Nyquist factor')
-                print('3 = Specify the frequency')
-                print('4 = Double the frequency')
-                print('5 = Halve the frequency')
+                print('1 = Specify method')
+                print('2 = Specify nterms')
+                print('3 = Specify min & max frequency,')
+                print('4 = Specify Nyquist factor')
+                print('5 = Specify the frequency')
+                print('')
                 choice2 = input('What is your choice? ')
+
+                # method
                 if choice2.strip() == '1':
-                    min_freq = float(input('What is the minimum frequency? '))
-                    max_freq = float(input('What is the maximum frequency? '))
-                    spp = float(input('How many samples per peak? '))
-                    frequency, power = LombScargle(t_days, y_mags).autopower(minimum_frequency= min_freq,
-                                                                         maximum_frequency= max_freq,
-                                                                         samples_per_peak= spp)
-                    best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
-                    break
+                    method = input("What method do you want to use? ('auto', 'fast', 'slow', 'cython', 'chi2', "
+                                   "fastchi2', or 'scipy') ").strip().lower()
 
+                # nterms
                 if choice2.strip() == '2':
-                    nyq = int(input('What Nyquist factor do you want to try? '))
-                    frequency, power = LombScargle(t_days, y_mags).autopower(nyquist_factor=nyq)
-                    best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
-                    break
+                    if method == 'chi2' or method == 'fastchi2':
+                        numterms = int(input('How many Fourier terms do you want to use in the model? ').strip())
+                    else:
+                        print("Number of terms 'nterms' can only be modified for methods 'chi2' or 'fastchi2'")
 
+                # min/max frequency
                 if choice2.strip() == '3':
-                    best_frequency = float(input('What frequency do you want to try? '))
-                    break
+                    min_freq = float(input('What is the minimum frequency? ').strip())
+                    max_freq = float(input('What is the maximum frequency? ').strip())
+                    spp = float(input('How many samples per peak? ').strip())
+                    mod = 1
 
+                # Nyquist
                 if choice2.strip() == '4':
-                    best_frequency = best_frequency * 2
+                    nyq = int(input('What Nyquist factor do you want to try? '))
+                    mod = 2
                     break
 
+                # specific frequency
                 if choice2.strip() == '5':
-                    best_frequency = best_frequency / 2
+                    best_frequency = float(input('What frequency do you want to try? '))
+                    mod = 3
                     break
-            if choice.strip() == '2':
-                frequency, power = LombScargle(t_days, y_mags).autopower()
-                best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
-                break
-            else:
-                print('Please enter a valid choice.')
 
+            else:
+                # frequency, power = LombScargle(t_days, y_mags, nterms=2).autopower(method='chi2')
+                # power_sorted = power.argsort()
+                # best_frequency = frequency[power_sorted[-2]]
+                # best_frequency = frequency[np.argmax(power)]  # most likely frequency is where the power is highest
+                break
+
+        if mod == 0:
+            frequency, power = LombScargle(t_days, y_mags, nterms=numterms).autopower(method=method)
+
+        if mod == 1:
+            frequency, power = LombScargle(t_days, y_mags, nterms=numterms).autopower(method=method,
+                                                                                 minimum_frequency=min_freq,
+                                                                                 maximum_frequency = max_freq,
+                                                                                 samples_per_peak = spp)
+
+        if mod == 2:
+            frequency, power = LombScargle(t_days, y_mags).autopower(nyquist_factor=nyq)
+
+        if mod == 3:
+            frequency, power = LombScargle(t_days, y_mags).power(best_frequency)
+
+        # power_sorted = power.argsort()
+        # best_frequency = frequency[power_sorted[-1]]
+        best_frequency = frequency[np.argmax(power)]  # the most likely frequency is where the power is highest
         plt.figure(1)
         plt.subplot(211)
         plt.plot(frequency, power, color='black')
@@ -186,7 +271,9 @@ def find_freq(dt, n):
         plt.ylabel('Ic-mag')
         plt.xlabel('Phase')
         plt.show()
+        print('')
         satisf = int(input('Is the phase plot satisfactory? 1=Yes or 2=No '))
+        print('')
         if satisf == 1:
             break
     return best_frequency, dt
@@ -247,7 +334,13 @@ def adjust_epoch(theDf):
     the parabola and the midway point between them is calculated.  This value represents the needed offset'''
 
     while True:
-        dur = input('What is the duration of the phase of the primary eclipse? ')
+        while True:
+            dur = input('What is the duration of the phase of the primary eclipse? ')
+            if float(dur) > 0 and float(dur) < 1:
+                break
+            else:
+                print('Please enter a valid duration that is greater than 0 and less than 1')
+        print('')
         theDf = theDf.sort_values('Phase')
         primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
         primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
@@ -282,7 +375,8 @@ def adjust_epoch(theDf):
         plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
         plt.grid()
         plt.show()
-        satisfactory = int(input('Is the location of the vertical offset line satisfactory? 1 for Yes, or 2 for No '))
+        satisfactory = int(input('Is the location of the vertical offset line satisfactory? 1=Yes or 2=No '))
+        print('')
         if satisfactory == 1:
             break
     return offset
