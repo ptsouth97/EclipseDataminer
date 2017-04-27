@@ -1,22 +1,14 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import os
-import object_info, catalogs, lombscargle
+import object_info, catalogs, lombscargle, cross_id
 
 
 def main():
     '''main program loop for determining period and epoch of a candidate eclipsing variable
     and then graphing its corresponding periodiagram and phase plot'''
 
-    print('########################################')
-    print('#         ECLIPSE DATA MINER           #')
-    print('########################################')
+    print_header()
     print('')
-    print('*****       ******   *****       ******')
-    print('     *     *      * *     *     *')
-    print('      *   *        *       *   *')
-    print('       * *                  * *')
-    print('        *                    *')
 
     while True:
         exit = input("Enter [1] to load an object's data or any other key to exit ").strip()
@@ -28,9 +20,14 @@ def main():
         if proceed != '1':
             break
 
-        name, url, final_df = object_info.set_name()
+        name, url, final_df, field_nm = object_info.set_name()
         dat = object_info.get_data_from_web(url)
         plot_raw_data(dat, name)
+
+        new_name = cross_id.viz(ra_d, dec_d, field_nm)
+        if new_name != 'Found nothing':
+            name = new_name
+
         freq, folded_df = lombscargle.find_freq(dat, name)
         epoch, zeroed = set_min_to_zero(folded_df)
         phased = add_phases(zeroed)
@@ -53,6 +50,8 @@ def main():
         plt_name = name + '_Phase_Diagram'
         plt.savefig(plt_name)
         plt.show()
+
+
         
     print('Good bye...')
 
@@ -169,6 +168,18 @@ def adjust_epoch(theDf):
         if satisfactory == 1:
             break
     return offset
+
+def print_header():
+    print('########################################')
+    print('#         ECLIPSE DATA MINER           #')
+    print('########################################')
+    print('')
+    print('*****       ******   *****       ******')
+    print('     *     *      * *     *     *')
+    print('      *   *        *       *   *')
+    print('       * *                  * *')
+    print('        *                    *')
+    return
 
 
 if __name__ == '__main__':

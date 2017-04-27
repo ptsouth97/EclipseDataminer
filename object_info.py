@@ -3,13 +3,13 @@ import pandas as pd
 
 
 def main():
-    get_info()
+    set_name()
 
 def set_name():
     '''store basic information about the object of interest'''
     while True:
         field_name = input('What is the FIELD NAME of the candidate variable? ').strip()
-        field_num = input('What is the FIELD NUMBER of the candidate variable? ').strip()
+        field_num = input('What is the FIELD NUMBER of the candidate variable? (Enter SCxx) ').strip()
         star_id = input('What is the STAR ID of the candidate variable ').strip()
         print('')
         url_id = field_name.lower() + '_' + field_num.lower() + '_i_' + star_id.lower() + '.dat'
@@ -21,10 +21,10 @@ def set_name():
         if correct == '1':
             break
 
-    newpath = r'C:\Users\Blake\Transporter\Personal Documents' \
-              r'\Hobbies and Interests\a. Astronomy\1. AAVSO\Data Mining\Suspects\New stars\\' + path_id
+    newpath = os.getcwd() + '\\' + path_id
+
     if not os.path.exists(newpath):
-        os.makedirs(newpath)                                                # set up new directory with name of object
+        os.makedirs(newpath)                    # set up new directory with name of object
 
     os.chdir(newpath)
 
@@ -32,7 +32,7 @@ def set_name():
     columns = ['name', 'period', 'epoch']
     new_df = pd.DataFrame(columns=columns, index=range(0, 1))
 
-    return path_id, url_id, new_df
+    return path_id, url_id, new_df, field_name
 
 
 def get_data_from_web(the_name):
