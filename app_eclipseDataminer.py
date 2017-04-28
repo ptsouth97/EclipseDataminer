@@ -25,6 +25,7 @@ def main():
         plot_raw_data(dat, name)
 
         new_name, x_matches = cross_id.viz(ra_d, dec_d, field_nm)
+        x_matches.to_csv('Possible_cross_ids.csv')
         if new_name != 'Found nothing':
             name = new_name
 
@@ -51,8 +52,6 @@ def main():
         plt.savefig(plt_name)
         plt.show()
 
-
-        
     print('Good bye...')
 
 
