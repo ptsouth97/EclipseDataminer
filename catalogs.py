@@ -49,9 +49,5 @@ def check_vsx() -> object:
     return answer, RA, DEC
 
 
-def check_VizieR():
-    '''checks SIMBAD database for cross-IDs'''
-    pass
-
 if __name__ == '__main__':
 	main()

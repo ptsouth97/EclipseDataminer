@@ -24,7 +24,7 @@ def main():
         dat = object_info.get_data_from_web(url)
         plot_raw_data(dat, name)
 
-        new_name = cross_id.viz(ra_d, dec_d, field_nm)
+        new_name, x_matches = cross_id.viz(ra_d, dec_d, field_nm)
         if new_name != 'Found nothing':
             name = new_name
 
@@ -163,9 +163,10 @@ def adjust_epoch(theDf):
         plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
         plt.grid()
         plt.show()
-        satisfactory = int(input('Is the location of the vertical offset line satisfactory? 1=Yes or 2=No '))
+        satisfactory = input('Is the location of the vertical offset line satisfactory? [1]=Yes or [any other '
+                             'key]=No ').strip()
         print('')
-        if satisfactory == 1:
+        if satisfactory == '1':
             break
     return offset
 
