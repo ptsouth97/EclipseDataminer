@@ -42,7 +42,7 @@ def find_freq(dt, n):
         mod = 0
 
         while True:
-            choice = input('Would you like to modify arguments for Lomb Scargle? 1=Yes, any other key=No ')
+            choice = input('Would you like to modify arguments for Lomb Scargle? [1]=Yes, [any other key]=No ')
 
             if choice.strip() == '1':
                 print('')
@@ -131,9 +131,9 @@ def find_freq(dt, n):
         plt.xlabel('Phase')
         plt.show()
         print('')
-        satisf = int(input('Is the phase plot satisfactory? 1=Yes or 2=No '))
+        satisf = input('Is the phase plot satisfactory? [1]=Yes, [any other key]=No ').strip()
         print('')
-        if satisf == 1:
+        if satisf == '1':
             break
     return best_frequency, dt
 
