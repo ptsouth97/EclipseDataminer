@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import object_info, catalogs, lombscargle, cross_id, phase_adjustments
+import object_info, catalogs, lombscargle, cross_id, phase_adjustments, parameters
+from matplotlib.ticker import FormatStrFormatter
 
 
 def main():
@@ -41,18 +42,25 @@ def main():
         # make adjustments to phase plot
         epoch, zeroed = phase_adjustments.set_min_to_zero(folded_df)
         phased = phase_adjustments.add_phases(zeroed)
+
         adj = phase_adjustments.set_epoch(phased)
         phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
         # calculate relevant parameters, place in data frame, and then write to file
         period = round(1 / freq, 4)
         epoch = round(epoch + period * adj, 3)
+        minimum = parameters.find_min(phased)
+        maximum = parameters.find_max(phased)
         final_df.iloc[0][0] = name
         final_df.iloc[0][1] = period
         final_df.iloc[0][2] = epoch
+        final_df.iloc[0][3] = minimum
+        final_df.iloc[0][4] = maximum
         final_df.to_csv(name + '_Parameters.csv')
 
         # plot finalized phase diagram
+        fig, ax = plt.subplots()
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
         plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
         plt.gca().invert_yaxis()
         plt.ylabel('Ic-mag')
@@ -69,7 +77,11 @@ def main():
 def plot_raw_data(df, nme):
     '''plots the raw data as a test to ensure data was imported properly'''
 
-    df.plot(kind='scatter', x='HJD', y='mag')
+    fig, ax = plt.subplots()
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+
+    plt.scatter(df['HJD'], df['mag'], color='black', s=5)  # 's' is for marker size
+
     plt.gca().invert_yaxis()
     plt.title(nme + ' Raw Data')
     plot_name = nme + ' Raw Data.png'

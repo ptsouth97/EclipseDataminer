@@ -29,7 +29,7 @@ def set_name():
     os.chdir(newpath)
 
     # create new data frame that will hold the information discovered
-    columns = ['name', 'period', 'epoch']
+    columns = ['name', 'period', 'epoch', 'minimum', 'maximum']
     new_df = pd.DataFrame(columns=columns, index=range(0, 1))
 
     return path_id, url_id, new_df, field_name

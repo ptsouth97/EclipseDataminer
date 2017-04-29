@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.ticker import FormatStrFormatter
 
 
 def set_min_to_zero(folded):
@@ -88,6 +89,8 @@ def set_epoch(theDf):
         if offset == 0:
             print('No match found')
 
+        fig, ax = plt.subplots()
+        ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
         plt.scatter(primary_eclipse['Phase'], primary_eclipse['mag'])
         plt.scatter(primary_eclipse.iloc[mk_1][5], primary_eclipse.iloc[mk_1][1], color='yellow')
         plt.scatter(primary_eclipse.iloc[mk_2][5], primary_eclipse.iloc[mk_2][1], color='yellow')
