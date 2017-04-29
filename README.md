@@ -1,6 +1,7 @@
 # EclipseDataminer
 
 This application's purpose is to analyze astronomical objects' photometry measurements from a dataset to determine if the object is an [eclipsing binary star](http://www.physics.sfasu.edu/astro/ebstar/ebstar.html).
+Tested with Python 3.6 running on Windows 10
 
 ## Workflow ##
 * User must indepedently locate a suspected eclipsing binary in the [OGLE II photometry database](http://ogledb.astrouw.edu.pl/~ogle/photdb/)
