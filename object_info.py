@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-
+from sys import platform
 
 def main():
     set_name()
@@ -21,8 +21,11 @@ def set_name():
         if correct == '1':
             break
 
-    newpath = os.getcwd() + '\\' + path_id
-
+    if platform == 'linux':
+        newpath = os.getcwd() + '/' + path_id
+    else:
+        newpath = os.getcwd() + '\\' + path_id
+ 
     if not os.path.exists(newpath):
         os.makedirs(newpath)                    # set up new directory with name of object
 
