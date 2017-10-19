@@ -1,3 +1,5 @@
+#!/usr/bin/python3.5
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
@@ -28,7 +30,7 @@ def main():
         if proceed != '1':
             break
 
-        name, url, final_df = object_info.set_name()
+        path, name, url, final_df = object_info.set_name()
         dat = object_info.get_data_from_web(url)
         plot_raw_data(dat, name)
         freq, folded_df = lombscargle.find_freq(dat, name)

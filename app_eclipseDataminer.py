@@ -1,106 +1,133 @@
+#!/usr/bin/python3.5
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import object_info, catalogs, lombscargle, cross_id, phase_adjustments, parameters
+import object_info, catalogs, lombscargle, cross_id, phase_adjustments, parameters, read_query
 from matplotlib.ticker import FormatStrFormatter
 
 
 def main():
-    '''main program loop for determining period and epoch of a candidate eclipsing variable
-    and then graphing its corresponding periodiagram and phase plot'''
+	'''main program loop for determining period and epoch of a candidate eclipsing variable \
+	and then graphing its corresponding periodiagram and phase plot'''
 
-    print_header()
-    print('')
+	print_header()
+	print('')
 
-    while True:
-        # load data or quit application
-        exit = input("Enter [1] to load an object's data or any other key to exit ").strip()
-        print('')
-        if exit != '1':
-            break
+	# load data from query text file into pandas data frame
+	while True:
+		try:
+			txt_file = input('Enter the query text file name: ')   # 'query_2017-10-18_19_39_03.txt'
+			df = read_query.load_query(txt_file)
+			break
+		except ValueError:
+			print('Sorry, that file does not exist. Please try again')
+	
 
-        # check AAVSO's VSX to see if variable star already exists at given position before proceeding
-        proceed, ra_d, dec_d = catalogs.check_vsx()
-        if proceed != '1':
-            break
+	for obj in range(0, len(df)):
+		# load data or quit application
+		'''exit = input("Enter [1] to load an object's data or any other key to exit ").strip()
+		print('')
+		if exit != '1':
+		break'''
+
+		# grab coordinates
+		ra_h = df.iloc[obj][3]
+		ra_d = float(ra_h) * 360 / 24  # convert to decimal degrees
+
+		dec_d = df.iloc[obj][4]
+		
+
+		# check AAVSO's VSX to see if variable star already exists at given position before proceeding
+		proceed = catalogs.check_vsx(ra_d, dec_d)
+		if proceed != '1':
+			continue
 
         # set the name of the variable, make a new folder & url with that name, and set empty data frame for results
-        name, url, final_df, field_nm = object_info.set_name()
+		field_nm = str(df.iloc[obj][0])
+		sid = str(df.iloc[obj][1])
+		print('The field name is ' + field_nm + ' and the star_id is ' + sid)
+		name, url, final_df = object_info.set_name(field_nm, sid)
 
-        # get the data from the url just generated with the object's name then plot raw data to validate
-        dat = object_info.get_data_from_web(url)
-        plot_raw_data(dat, name)
+		# get the data from the url just generated with the object's name then plot raw data to validate
+		dat = object_info.get_data_from_web(url)
+		plot_raw_data(dat, name)
+		print('')
+		pattern=input('Do you want to continue analysis based on the plot of the raw data? [1]=Yes; [any other key]=No ').strip()
+		if pattern != '1':
+			continue
+		if pattern == '3':
+			break
 
-        # check VizieR to cross match with objects in other catalogs...if in OGLE DIA, change to that name
-        new_name, x_matches = cross_id.viz(ra_d, dec_d, field_nm)
-        x_matches.to_csv('Possible_cross_ids.csv')
-        if new_name != 'Found nothing':
-            name = new_name
+		# check VizieR to cross match with objects in other catalogs...if in OGLE DIA, change to that name
+		new_name, x_matches = cross_id.viz(ra_d, dec_d, field_nm)
+		x_matches.to_csv('Possible_cross_ids.csv')
+		if new_name != 'Found nothing':
+			name = new_name
 
-        # search for a frequency that yields an acceptable phase plot
-        freq, folded_df = lombscargle.find_freq(dat, name)
+		# search for a frequency that yields an acceptable phase plot
+		freq, folded_df = lombscargle.find_freq(dat, name)
 
         # make adjustments to phase plot
-        epoch, zeroed = phase_adjustments.set_min_to_zero(folded_df)
-        phased = phase_adjustments.add_phases(zeroed)
+		epoch, zeroed = phase_adjustments.set_min_to_zero(folded_df)
+		phased = phase_adjustments.add_phases(zeroed)
 
-        adj = phase_adjustments.set_epoch(phased)
-        phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
+		adj = phase_adjustments.set_epoch(phased)
+		phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
-        # calculate relevant parameters, place in data frame, and then write to file
-        period = round(1 / freq, 4)
-        epoch = round(epoch + period * adj, 3)
-        minimum = parameters.find_min(phased)
-        maximum = parameters.find_max(phased)
-        final_df.iloc[0][0] = name
-        final_df.iloc[0][1] = period
-        final_df.iloc[0][2] = epoch
-        final_df.iloc[0][3] = minimum
-        final_df.iloc[0][4] = maximum
-        final_df.to_csv(name + '_Parameters.csv')
+		# calculate relevant parameters, place in data frame, and then write to file
+		period = round(1 / freq, 4)
+		epoch = round(epoch + period * adj, 3)
+		minimum = parameters.find_min(phased)
+		maximum = parameters.find_max(phased)
+		final_df.iloc[0][0] = name
+		final_df.iloc[0][1] = period
+		final_df.iloc[0][2] = epoch
+		final_df.iloc[0][3] = minimum
+		final_df.iloc[0][4] = maximum
+		final_df.to_csv(name + '_Parameters.csv')
 
-        # plot finalized phase diagram
-        fig, ax = plt.subplots()
-        ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-        plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
-        plt.gca().invert_yaxis()
-        plt.ylabel('Ic-mag')
-        plt.xlabel('Phase')
-        plt.title(name + ' (P = ' + str(period) + ' d)')
-        plt.grid()
-        plt_name = name + '_Phase_Diagram'
-        plt.savefig(plt_name)
-        plt.show()
+		# plot finalized phase diagram
+		fig, ax = plt.subplots()
+		ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+		plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
+		plt.gca().invert_yaxis()
+		plt.ylabel('Ic-mag')
+		plt.xlabel('Phase')
+		plt.title(name + ' (P = ' + str(period) + ' d)')
+		plt.grid()
+		plt_name = name + '_Phase_Diagram'
+		plt.savefig(plt_name)
+		plt.show()
 
-    print('Good bye...')
+	print('Good bye...')
 
 
 def plot_raw_data(df, nme):
-    '''plots the raw data as a test to ensure data was imported properly'''
+	'''plots the raw data as a test to ensure data was imported properly'''
 
-    fig, ax = plt.subplots()
-    ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
+	fig, ax = plt.subplots()
+	ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
 
-    plt.scatter(df['HJD'], df['mag'], color='black', s=5)  # 's' is for marker size
+	plt.scatter(df['HJD'], df['mag'], color='black', s=5)  # 's' is for marker size
 
-    plt.gca().invert_yaxis()
-    plt.title(nme + ' Raw Data')
-    plot_name = nme + ' Raw Data.png'
-    plt.savefig(plot_name)
-    plt.show()
+	plt.gca().invert_yaxis()
+	plt.title(nme + ' Raw Data')
+	plot_name = nme + ' Raw Data.png'
+	plt.savefig(plot_name)
+	plt.show()
 
 
 def print_header():
-    print('########################################')
-    print('#         ECLIPSE DATA MINER           #')
-    print('########################################')
-    print('')
-    print('*****       ******   *****       ******')
-    print('     *     *      * *     *     *')
-    print('      *   *        *       *   *')
-    print('       * *                  * *')
-    print('        *                    *')
-    return
+	print('########################################')
+	print('#         ECLIPSE DATA MINER           #')
+	print('########################################')
+	print('')
+	print('*****       ******   *****       ******')
+	print('     *     *      * *     *     *')
+	print('      *   *        *       *   *')
+	print('       * *                  * *')
+	print('        *                    *')
+	return
 
 
 if __name__ == '__main__':

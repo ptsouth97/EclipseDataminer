@@ -1,0 +1,9 @@
+__pycache__/
+os
+pd
+parameters
+plt
+app_eclipseDataminer_BACKUP.py
+catalogs_BACKUP.py
+lombscargle
+object_info_BACKUP.py

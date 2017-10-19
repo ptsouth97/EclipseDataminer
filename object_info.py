@@ -5,21 +5,17 @@ from sys import platform
 def main():
     set_name()
 
-def set_name():
+def set_name(field, star_id):
     '''store basic information about the object of interest'''
-    while True:
-        field_name = input('What is the FIELD NAME of the candidate variable? ').strip()
-        field_num = input('What is the FIELD NUMBER of the candidate variable? (Enter SCxx) ').strip()
-        star_id = input('What is the STAR ID of the candidate variable ').strip()
-        print('')
-        url_id = field_name.lower() + '_' + field_num.lower() + '_i_' + star_id.lower() + '.dat'
-        path_id = 'OGLEII_' + field_name.upper() + '-' + field_num.upper() + '_' + star_id
+    
+    url_id = field.lower() + '_i_' + star_id + '.dat'
+    path_id = 'OGLEII_' + field + '_' + star_id
 
-        print('You entered: ' + path_id + ' and the url_id is ' + url_id)
-        print('')
-        correct = input('Is this correct?  [1]=Yes, [any other key]=No ').strip()
-        if correct == '1':
-            break
+    print('You entered: ' + path_id + ' and the url_id is ' + url_id)
+    print('')
+    '''correct = input('Is this correct?  [1]=Yes, [any other key]=No ').strip()
+       if correct == '1':
+       break'''
 
     if platform == 'linux':
         newpath = os.getcwd() + '/' + path_id
@@ -35,7 +31,7 @@ def set_name():
     columns = ['name', 'period', 'epoch', 'minimum', 'maximum']
     new_df = pd.DataFrame(columns=columns, index=range(0, 1))
 
-    return path_id, url_id, new_df, field_name
+    return path_id, url_id, new_df
 
 
 def get_data_from_web(the_name):
