@@ -19,7 +19,7 @@ def main():
     find_freq(dt, n)
 
 
-def find_freq(dt, n):
+def find_freq(dt, n, automatic):
     '''Uses astropy's LombScargle method to search for frequency with the highest power and then visually check
     if it produces a viable phase plot.  For more see http://docs.astropy.org/en/stable/stats/lombscargle.html'''
 
@@ -42,7 +42,10 @@ def find_freq(dt, n):
         mod = 0
 
         while True:
-            choice = input('Would you like to modify arguments for Lomb Scargle? [1]=Yes, [any other key]=No ')
+            if automatic == '1':
+                choice = '2'
+            else:
+                choice = input('Would you like to modify arguments for Lomb Scargle? [1]=Yes, [any other key]=No ')
 
             if choice.strip() == '1':
                 print('')
@@ -129,12 +132,19 @@ def find_freq(dt, n):
         plt.gca().invert_yaxis()
         plt.ylabel('Ic-mag')
         plt.xlabel('Phase')
-        plt.show()
-        print('')
-        satisf = input('Is the phase plot satisfactory? [1]=Yes, [any other key]=No ').strip()
-        print('')
+
+        if automatic == '1':
+            satisf = '1'
+
+        else:
+            plt.show()
+            print('')
+            satisf = input('Is the phase plot satisfactory? [1]=Yes, [any other key]=No ').strip()
+            print('')
+
         if satisf == '1':
             break
+
     return best_frequency, dt
 
 

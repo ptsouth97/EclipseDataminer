@@ -7,3 +7,8 @@ app_eclipseDataminer_BACKUP.py
 catalogs_BACKUP.py
 lombscargle
 object_info_BACKUP.py
+*.png
+*.csv
+*/
+*.csv#
+*.txt

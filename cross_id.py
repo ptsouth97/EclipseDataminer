@@ -48,11 +48,15 @@ def viz(ra, dec, fn):
     for cat in range(0, int(len(result))):
         if str(result) == 'Empty TableList':
             break
+        
+        which_catalog = result[cat]
+        r = float(which_catalog[0]['_r'])
+        RA = float(which_catalog[0]['RAJ2000'])
+        DE = float(which_catalog[0]['DEJ2000'])
 
-        r = float(result[cat]['_r'])
-        matches.iloc[cat][1] = float(result[cat]['_r'])
-        matches.iloc[cat][2] = float(result[cat]['RAJ2000'])
-        matches.iloc[cat][3] = float(result[cat]['DEJ2000'])
+        matches.iloc[cat][1] = r
+        matches.iloc[cat][2] = RA
+        matches.iloc[cat][3] = DE
 
         if bool(re.search('Field', str(result[cat].columns))) == True:
             field = int(result[cat]['Field'])

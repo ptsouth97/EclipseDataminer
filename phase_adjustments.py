@@ -20,7 +20,7 @@ def set_min_to_zero(folded):
     return epc, zero
 
 
-def add_phases(zd):
+def add_phases(zd, atc):
     '''In order to show full eclipse eclipse behavior, adds phases -0.25 to 0 and 1 to 1.25 (full range now
     -0.25 to 1.25 instead of just 0 to 1). To do this, must copy and paste relevant parts of the curve'''
 
@@ -46,12 +46,13 @@ def add_phases(zd):
     plt.grid(b=True, which='major', color='red', linestyle='-')
     plt.grid(b=True, which='minor', color='green', linestyle='-')
     plt.title('ESTIMATE THE DURATION OF THE PRIMARY ECLIPSE')
-    plt.show()
+    if atc != '1':
+        plt.show()
 
     return update2
 
 
-def set_epoch(theDf):
+def set_epoch(theDf, autoc):
     '''Plots just the primary eclipse data points. Because the minimum magnitude observed does not necessarily
     match the true minimum at phase 0, the data points need to be adjusted by looking at the offset of the shape of
     the eclipse from phase 0. To do this, two nearly equivalent magnitude points are located on opposite sides of
@@ -59,11 +60,15 @@ def set_epoch(theDf):
 
     while True:
         while True:
-            dur = input('What is the duration of the phase of the primary eclipse? ')
-            if float(dur) > 0 and float(dur) < 1:
+            if autoc == '1':
+                dur = float(0.2)
                 break
             else:
-                print('Please enter a valid duration that is greater than 0 and less than 1')
+                dur = input('What is the duration of the phase of the primary eclipse? ')
+                if float(dur) > 0 and float(dur) < 1:
+                    break
+                else:
+                    print('Please enter a valid duration that is greater than 0 and less than 1')
         print('')
         theDf = theDf.sort_values('Phase')
         primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
@@ -100,10 +105,13 @@ def set_epoch(theDf):
         plt.title('Red line should appear half-way between two yellow points')
         plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
         plt.grid()
-        plt.show()
-        satisfactory = input('Is the location of the vertical offset line satisfactory? [1]=Yes or [any other '
+        if autoc == '1':
+            satisfactory = '1'
+        if autoc != '1':
+            plt.show()
+            satisfactory = input('Is the location of the vertical offset line satisfactory? [1]=Yes or [any other '
                              'key]=No ').strip()
-        print('')
+            print('')
         if satisfactory == '1':
             break
     return offset
