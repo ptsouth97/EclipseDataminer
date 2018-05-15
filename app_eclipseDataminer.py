@@ -2,7 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import object_info, catalogs, lombscargle, cross_id, phase_adjustments, parameters, read_query
+import object_info, aavso, lombscargle, cross_id, phase_adjustments, parameters, read_query
 from matplotlib.ticker import FormatStrFormatter
 import shutil, os
 from pathlib import Path
@@ -28,11 +28,13 @@ def main():
 	total = len(df)
 	print('There are {} objects in the query file'.format(str(total)))
 	print('')
+
 	start = int(input('Which object do you want to start on? '))
 	print('')
 
 	how_close = int(input('What distance in arcmin would you like to use to decide if the object is already classified? '))
 	print('')
+
 	auto_choice = input('Do you want to run the analysis [1] fully automated or [any other key] with user input? ').strip()
 	home = os.getcwd()
 		
@@ -41,14 +43,14 @@ def main():
 
 		print('Now checking object {} of {}...'.format(str(obj), str(total)))
 
-		# grab coordinates from data frame and convert right ascension in hours to decimal degrees
+		# slice coordinates from data frame and convert right ascension in hours to decimal degrees
 		ra_h = df.iloc[obj][3]
 		ra_d = float(ra_h) * 360 / 24  # convert to decimal degrees
 
 		dec_d = df.iloc[obj][4]
 		
 		# check AAVSO's VSX to see if variable star already exists at given position before proceeding
-		proceed = catalogs.check_vsx(ra_d, dec_d, how_close)
+		proceed = aavso.check_vsx(ra_d, dec_d, how_close)
 		if proceed != '1':      # if there is already a nearby variable, move to the next object
 			continue
 
