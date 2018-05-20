@@ -91,9 +91,13 @@ def main():
 			pattern=input('Continue analysis based on the plot of the raw data?[1]=Yes; [2]=No; [other key]=quit ').strip()
 			print('')
 
+		delete_unused_file = name + '_Raw_Data.png'
+
 		if pattern == '2':
+			os.remove(delete_unused_file)
 			continue
 		if pattern != '1':   
+			os.remove(delete_unused_file)
 			break
 
 		# create a new folder for the object and generate an empty dataframe to hold the analysis parameters
