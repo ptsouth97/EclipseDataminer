@@ -15,9 +15,10 @@ def main():
 	print_header()
 	print('')
 
+	# read the query file and create a new dataframe -- df
 	while True:
 		try:
-			txt_file = input('Enter the query text file name: ')   # 'query_2017-10-18_19_39_03.txt'
+			txt_file = input('Enter the query text file name: ')   
 			df = read_query.load_query(txt_file)
 			break
 
@@ -29,29 +30,42 @@ def main():
 	print('There are {} objects in the query file'.format(str(total)))
 	print('')
 
+	# defining the starting point allows users to split large files into multiple sessions
 	start = int(input('Which object do you want to start on? '))
 	print('')
 
+	# the 'how_close' parameter can be configured to determine if an object has already been classified
 	how_close = int(input('What distance in arcmin would you like to use to decide if the object is already classified? '))
 	print('')
 
+	# The fully automatic mode selects the default for all choices while they can be tweaked in the user input mode
+	# FULLY AUTOMATIC FEATURE IS NOT FUNCTIONING YET
 	auto_choice = input('Do you want to run the analysis [1] fully automated or [any other key] with user input? ').strip()
+
+	# REMOVE THIS ONCE FULLY AUTOMATIC FEATURE IS WORKING:
+	if auto_choice == '1':
+		print('Sorry, fully automated is not available at this time. Defaulting to user input mode.')
+		print('')
+		auto_choice = '2'	
+
 	home = os.getcwd()
 		
-
+	# The primary loop that goes through each row of the dataframe df
 	for obj in range(start, total):
 
 		print('Now checking object {} of {}...'.format(str(obj), str(total)))
 
 		# slice coordinates from data frame and convert right ascension in hours to decimal degrees
 		ra_h = df.iloc[obj][3]
-		ra_d = float(ra_h) * 360 / 24  # convert to decimal degrees
+		ra_d = float(ra_h) * 360 / 24 
 
 		dec_d = df.iloc[obj][4]
 		
-		# check AAVSO's VSX to see if variable star already exists at given position before proceeding
+		# check AAVSO's index (VSX) to see if variable star already exists at given position; check_vsx returns '1' if none found
 		proceed = aavso.check_vsx(ra_d, dec_d, how_close)
-		if proceed != '1':      # if there is already a nearby variable, move to the next object
+
+		# If there is already a nearby variable (nearby defined by 'how_close', move to the next object
+		if proceed != '1':      
 			continue
 
         # set the field name, star id (sid), and url of the object
@@ -63,18 +77,23 @@ def main():
 		# get the data from the url just generated with the object's name then plot raw data to validate
 		dat = object_info.get_data_from_web(url)
 		if dat.empty == True:
-			continue       
+			continue
+       
+		# Plot the raw data that was just pulled from the web
 		plot_raw_data(dat, name, auto_choice)
 		print('')
 
+		# At this point the user can decide whether or not to proceede based on their visual interpretation of the data
+		# In the future, the fully automatic feature will make this decision based on machine learning
 		if auto_choice == '1':
 			pattern = '1'
 		else:
-			pattern=input('Do you want to continue analysis based on the plot of the raw data?[1]=Yes; [other key]=No ').strip()
+			pattern=input('Continue analysis based on the plot of the raw data?[1]=Yes; [2]=No; [other key]=quit ').strip()
+			print('')
 
-		if pattern != '1':
+		if pattern == '2':
 			continue
-		if pattern == '3':
+		if pattern != '1':   
 			break
 
 		# create a new folder for the object and generate an empty dataframe to hold the analysis parameters
@@ -98,7 +117,7 @@ def main():
 		# search for a frequency that yields an acceptable phase plot
 		freq, folded_df = lombscargle.find_freq(dat, name, auto_choice)
 
-        	# make adjustments to phase plot
+		# make adjustments to phase plot
 		epoch, zeroed = phase_adjustments.set_min_to_zero(folded_df)
 		phased = phase_adjustments.add_phases(zeroed, auto_choice)
 
