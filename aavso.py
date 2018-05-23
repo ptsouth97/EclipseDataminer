@@ -1,14 +1,15 @@
+#!/usr/bin/python3
+
 import requests
 from bs4 import BeautifulSoup
+
 
 def main():
 	'''main loop for testing'''
 
-	print('check 1')
 	ra = 272.417942
 	dec = -32.556141
 	how_close = 1
-	print('check 2')
 	check_vsx(ra, dec, how_close)
 
 
@@ -23,16 +24,20 @@ def check_vsx(RA, DEC, close) -> object:
     print('Coordinates =  ' + coords)
     print('')
 
-	# get the data from the url
+	# get the html data from the url
     r = requests.get(url)
     html_doc = r.text
     soup = BeautifulSoup(html_doc, 'lxml')
-    table = soup.find_all('table')[10]                                  # grab the table with the relevant object info
-
-	# find 'tr' in the table and get the first entry
-    all_tr = table.find_all('tr')                                       # type = ResultSet
-    first_entry = all_tr[2]                                             # type = Tag
-    results = first_entry.get_text().lstrip(' ')                        # type = string
+    
+    # grab the relevant object info in the 10th table
+    table = soup.find_all('table')[10]                                  
+    
+	# find all the <tr> (i.e., rows of cells) in the table and get the first entry
+    all_tr = table.find_all('tr')                                       # type = bs4.ResultSet
+    first_entry = all_tr[2]                                             # type = bs4.Tag
+    
+    # convert the result into a string and slice the distance (dist) and object name (idx)
+    results = first_entry.get_text().lstrip(' ')                        
     dist = float(results[3:7])
     idx = results[11:37].strip()
 
@@ -53,9 +58,9 @@ def check_vsx(RA, DEC, close) -> object:
             print('PROCEEDING WITH ANALYSIS...')
         
     print('')
+	# returns 1 if no nearby objects found within specified distance; otherwise 0
     return answer
 
 
 if __name__ == '__main__':
-	print('started')
 	main()
