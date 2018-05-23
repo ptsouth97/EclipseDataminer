@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from astroquery.vizier import Vizier
 import astropy.coordinates as coord
 import astropy.units as u
@@ -14,27 +16,27 @@ import re
 
 
 def main():
-    '''main loop for unit testing 'cross_id' with sample coordinates'''
+	'''main loop for unit testing 'cross_id' with sample coordinates'''
 
-    right_ascension = 262.103       # 272.279
-    declination = -40.22071         # -26.63787
-    field_name = 'BUL'
-    viz(right_ascension, declination, field_name)
+	right_ascension = 262.103       # 272.279
+	declination = -40.22071         # -26.63787
+	field_name = 'BUL'
+	viz(right_ascension, declination, field_name)
 
 
 def viz(ra, dec, fn):
-    '''Queries VizieR database for coordinates given and returns matches < 1 arcsec for given catalogs'''
+	'''Queries VizieR database for coordinates given and returns matches < 1 arcsec for given catalogs'''
 
-    nw_nm = 'Found nothing'
+	nw_nm = 'Found nothing'
 
-    # create new data frame that will hold the cross-id matches discovered
-    columns = ['name', 'dist', 'ra', 'dec']
-    matches = pd.DataFrame(columns=columns, index=range(0, 6))
+	# create new data frame that will hold the cross-id matches discovered
+	columns = ['name', 'dist', 'ra', 'dec']
+	matches = pd.DataFrame(columns=columns, index=range(0, 6))
 
-    v = Vizier(columns=["**", "+_r"])        # '*' sort by columns, '+' for ascending, '_r' for distance column
+	v = Vizier(columns=["**", "+_r"])        # '*' sort by columns, '+' for ascending, '_r' for distance column
 
-    # query the database
-    result = v.query_region(coord.SkyCoord(ra=ra, dec=dec,
+	# query the database
+	result = v.query_region(coord.SkyCoord(ra=ra, dec=dec,
                                                 unit=(u.deg, u.deg),
                                                 frame='icrs'),
                                                 radius=1.0*u.arcsec,
@@ -45,64 +47,67 @@ def viz(ra, dec, fn):
                                                          'I/284/out',
                                                          'I/317/sample'])
 
-    for cat in range(0, int(len(result))):
-        if str(result) == 'Empty TableList':
-            break
+	for cat in range(0, int(len(result))):
+		if str(result) == 'Empty TableList':
+			break
         
-        which_catalog = result[cat]
-        r = float(which_catalog[0]['_r'])
-        RA = float(which_catalog[0]['RAJ2000'])
-        DE = float(which_catalog[0]['DEJ2000'])
+		which_catalog = result[cat]
+		r = float(which_catalog[0]['_r'])
+		RA = float(which_catalog[0]['RAJ2000'])
+		DE = float(which_catalog[0]['DEJ2000'])
 
-        matches.iloc[cat][1] = r
-        matches.iloc[cat][2] = RA
-        matches.iloc[cat][3] = DE
+		matches.iloc[cat][1] = r
+		matches.iloc[cat][2] = RA
+		matches.iloc[cat][3] = DE
 
-        if bool(re.search('Field', str(result[cat].columns))) == True:
-            field = int(result[cat]['Field'])
-            vno = int(result[cat]['Vno'])
-            a_nm = 'OGLEII DIA ' + fn + '-SC' + str(field) + ' V' + str(vno)
-            matches.iloc[0][0] = a_nm
+		if bool(re.search('Field', str(result[cat].columns))) == True:
+			field = int(result[cat]['Field'])
+			vno = int(result[cat]['Vno'])
+			a_nm = 'OGLEII DIA ' + fn + '-SC' + str(field) + ' V' + str(vno)
+			matches.iloc[0][0] = a_nm
 
-        elif  bool(re.search('2MASS', str(result[cat].columns))) == True and \
+		elif  bool(re.search('2MASS', str(result[cat].columns))) == True and \
                         bool(re.search('Rflg', str(result[cat].columns))) == True:
-            mass_name_1 = str(result[cat]['_2MASS'])
-            mass_name_2 = mass_name_1[33:50].strip()
-            mass_name_3 = '2MASS J' + mass_name_2
-            matches.iloc[cat][0] = mass_name_3
+			mass_name_1 = str(result[cat]['_2MASS'])
+			mass_name_2 = mass_name_1[33:50].strip()
+			mass_name_3 = '2MASS J' + mass_name_2
+			matches.iloc[cat][0] = mass_name_3
 
-        elif  bool(re.search('CMC15', str(result[cat].columns))) == True:
+		elif  bool(re.search('CMC15', str(result[cat].columns))) == True:
 
-            cmc_name_1 = str(result[cat]['CMC15'])
-            cmc_name_2 = cmc_name_1[32:50].strip()
-            cmc_name_3 = 'CMC15 J' + cmc_name_2
-            matches.iloc[cat][0] = cmc_name_3
+			cmc_name_1 = str(result[cat]['CMC15'])
+			cmc_name_2 = cmc_name_1[32:50].strip()
+			cmc_name_3 = 'CMC15 J' + cmc_name_2
+			matches.iloc[cat][0] = cmc_name_3
 
-        elif  bool(re.search('UCAC4', str(result[cat].columns))) == True:
+		elif  bool(re.search('UCAC4', str(result[cat].columns))) == True:
 
-            uc_name_1 = str(result[cat]['UCAC4'])
-            uc_name_2 = uc_name_1[22:60].strip()
-            uc_name_3 = 'UCAC4 ' + uc_name_2
-            matches.iloc[cat][0] = uc_name_3
+			uc_name_1 = str(result[cat]['UCAC4'])
+			uc_name_2 = uc_name_1[22:60].strip()
+			uc_name_3 = 'UCAC4 ' + uc_name_2
+			matches.iloc[cat][0] = uc_name_3
 
-        elif  bool(re.search('USNO-B1.0', str(result[cat].columns))) == True:
+		elif  bool(re.search('USNO-B1.0', str(result[cat].columns))) == True:
 
-            usn_name_1 = str(result[cat]['USNO-B1.0'])
-            usn_name_2 = usn_name_1[26:50].strip()
-            usn_name_3 = 'USNO-B1.0 ' + usn_name_2
-            matches.iloc[cat][0] = usn_name_3
+			usn_name_1 = str(result[cat]['USNO-B1.0'])
+			usn_name_2 = usn_name_1[26:50].strip()
+			usn_name_3 = 'USNO-B1.0 ' + usn_name_2
+			matches.iloc[cat][0] = usn_name_3
 
-        elif  bool(re.search('PPMXL', str(result[cat].columns))) == True:
+		elif  bool(re.search('PPMXL', str(result[cat].columns))) == True:
 
-            pm_name_1 = str(result[cat]['PPMXL'])
-            pm_name_2 = pm_name_1[40:70].strip()
-            pm_name_3 = 'PPMXL ' + pm_name_2
-            matches.iloc[cat][0] = pm_name_3
+			pm_name_1 = str(result[cat]['PPMXL'])
+			pm_name_2 = pm_name_1[40:70].strip()
+			pm_name_3 = 'PPMXL ' + pm_name_2
+			matches.iloc[cat][0] = pm_name_3
 
-    final_matches= matches.dropna(axis=0, how='any')
-    # print(final_matches)
+	final_matches= matches.dropna(axis=0, how='any')
 
-    return nw_nm, final_matches
+	if __name__ == '__main__':
+		print('POSSIBLE MATCHES FOUND:')
+		print(final_matches)
+
+	return nw_nm, final_matches
 
 if __name__ == '__main__':
-    main()
+	main()
