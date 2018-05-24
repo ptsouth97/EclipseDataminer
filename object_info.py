@@ -17,15 +17,12 @@ def main():
 def set_name(field, star_id):
 	'''store basic information about the object of interest'''
     
-	# url_id = field.lower() + '_i_' + star_id + '.dat'
 	path_id = 'OGLEII_' + field + '_' + star_id
 	url_id = 'field={}&starid={}&db=DIA&points=good'.format(field, star_id)
 
 	print('The ID is: ' + path_id + ' and the url_id is ' + url_id)
 	print('')
-    '''correct = input('Is this correct?  [1]=Yes, [any other key]=No ').strip()
-       if correct == '1':
-       break'''
+
 	return path_id, url_id
 
 
