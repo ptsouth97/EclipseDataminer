@@ -6,7 +6,7 @@ Tested with Python 3.6 running on Ubuntu
 ## Workflow ##
 * User must indepedently download a text file with query information from the [OGLE II photometry database](http://ogledb.astrouw.edu.pl/~ogle/photdb/)
 * The application turns the .txt file into a dataframe and loops through each row and converts the coordinates of the suspect into decimal hours and decimal degrees
-* The application checks the [AAVSO's Variable Star Index (VSX)](https://www.aavso.org/vsx/) to check if there is already a variable at that location
+* The application checks the [AAVSO's Variable Star Index (VSX)](https://www.aavso.org/vsx/) to check if there is already a variable at that location using a user defined distance
 * If not, data from the OGLE II database is downloaded to a dataframe and plotted as magnitude vs Julian date
 * Next, a frequency search is performed using the [Lomb-Scargle module from Astropy](http://docs.astropy.org/en/stable/stats/lombscargle.html)
 * After the frequency is found, the folded light curve (phase plot) is generated
