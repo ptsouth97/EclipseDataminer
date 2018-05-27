@@ -12,17 +12,26 @@ def main():
 def set_min_to_zero(folded):
 	'''Finds the primary eclipse (i.e., largest magnitude) and sets that as phase 0 and adjusts other phase values
 	accordingly'''
-	zero = folded.sort_values('mag', ascending=False)   # sort the magnitudes from biggest to smallest
-	min_phase = zero.iloc[0][5]                         # grab the phase of the largest mag (minima)
-	epc = zero.iloc[0][0]                               # grab the Julian Date of the largest mag (minima)
+	
+	# sort the magnitudes from biggest to smallest
+	zero = folded.sort_values('mag', ascending=False)
+	
+	# grab the phase of the largest mag (minima)
+	min_phase = zero.iloc[0][5] 
+	
+	# grab the Julian Date of the largest mag (minima)
+	epc = zero.iloc[0][0]                               
 
 	# Make the minimum magnitude phase 0 by subtracting min_phase; adjust all other phase values accordingly
 	zero.loc[:, 'Phase'] = zero.loc[:, 'Phase'].apply(lambda x: x - min_phase if x - min_phase >= 0 else x - min_phase + 1)
-	'''plt.scatter(zero['Phase'], zero['mag'])
-	plt.gca().invert_yaxis()
-	plt.ylabel('mag')
-	plt.xlabel('Phase')
-	plt.show()'''
+	
+	if __name__ == '__main__':
+		plt.scatter(zero['Phase'], zero['mag'])
+		plt.gca().invert_yaxis()
+		plt.ylabel('mag')
+		plt.xlabel('Phase')
+		plt.show()
+		
 	return epc, zero
 
 
@@ -52,6 +61,7 @@ def add_phases(zd, atc):
 	plt.grid(b=True, which='major', color='red', linestyle='-')
 	plt.grid(b=True, which='minor', color='green', linestyle='-')
 	plt.title('ESTIMATE THE DURATION OF THE PRIMARY ECLIPSE')
+	
 	if atc != '1':
 		plt.show()
 
@@ -111,6 +121,7 @@ def set_epoch(theDf, autoc):
 		plt.title('Red line should appear half-way between two yellow points')
 		plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
 		plt.grid()
+		
 		if autoc == '1':
 			satisfactory = '1'
 		if autoc != '1':
