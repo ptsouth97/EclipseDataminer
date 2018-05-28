@@ -78,6 +78,7 @@ def get_data_from_web(the_name):
 				df.iloc[row][i] = long_str[row * 5 + i]
 
 		df = df.apply(pd.to_numeric, errors='ignore')
+		df = df.loc[df['frame_grade'].isin(['A', 'B', 'C'])]
 		df.to_csv('RAW_DATA.csv')
         
 		break
