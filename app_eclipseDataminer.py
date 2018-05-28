@@ -2,7 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import object_info, aavso, lombscargle, cross_id, phase_adjustments, parameters, read_query
+import object_info, aavso, lombscargle, cross_id, phase_adjustments, parameters, initial_setup
 from matplotlib.ticker import FormatStrFormatter
 import shutil, os
 from pathlib import Path
@@ -15,38 +15,9 @@ def main():
 	print_header()
 	print('')
 
-	# read the query file and create a new dataframe -- df
-	while True:
-		try:
-			txt_file = input('Enter the query text file name: ')   
-			df = read_query.load_query(txt_file)
-			break
-
-		except ValueError:
-			print('Sorry, that file does not exist. Please try again')
-			print('')
-
-	total = len(df)
-	print('There are {} objects in the query file'.format(str(total)))
-	print('')
-
-	# defining the starting point allows users to split large files into multiple sessions
-	start = int(input('Which object do you want to start on? '))
-	print('')
-
-	# the 'how_close' parameter can be configured to determine if an object has already been classified
-	how_close = int(input('What distance in arcmin would you like to use to decide if the object is already classified? '))
-	print('')
-
-	# The fully automatic mode selects the default for all choices while they can be tweaked in the user input mode
-	# FULLY AUTOMATIC FEATURE IS NOT FUNCTIONING YET
-	auto_choice = input('Do you want to run the analysis [1] fully automated or [any other key] with user input? ').strip()
-
-	# REMOVE THIS ONCE FULLY AUTOMATIC FEATURE IS WORKING:
-	if auto_choice == '1':
-		print('Sorry, fully automated is not available at this time. Defaulting to user input mode.')
-		print('')
-		auto_choice = '2'	
+	# read the query file, create a dataframe, define the size and starting point in the df
+	# decide how close for a cross-id, and decide whether or not to run fully auto or with user input
+	df, total, start, how_close, auto_choice = initial_setup.read_query()
 
 	home = os.getcwd()
 		
@@ -78,6 +49,10 @@ def main():
 		dat = object_info.get_data_from_web(url)
 		if dat.empty == True:
 			continue
+
+		# Select only those data points graded as A, B, or C and exclude D, E, and F
+		# select_dat = dat.loc[dat['frame_grade'].isin(['A', 'B', 'C'])]
+		# print(select_dat)
        
 		# Plot the raw data that was just pulled from the web
 		plot_raw_data(dat, name, auto_choice)
@@ -120,6 +95,7 @@ def main():
 
 		# search for a frequency that yields an acceptable phase plot
 		freq, folded_df = lombscargle.find_freq(dat, name, auto_choice)
+		folded_df.to_csv('test_folded_df.csv')
 
 		# make adjustments to phase plot
 		epoch, zeroed = phase_adjustments.set_min_to_zero(folded_df)
