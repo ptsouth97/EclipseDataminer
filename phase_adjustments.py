@@ -6,7 +6,14 @@ from matplotlib.ticker import FormatStrFormatter
 
 
 def main():
+	'''main function for testing:  reads an example folded light curve dataframe '''
+
 	print('Testing mode')
+	print('')
+
+	test_df = pd.read_csv('test_folded_df.csv')
+
+	set_min_to_zero(test_df)	
 
 
 def set_min_to_zero(folded):
@@ -25,11 +32,26 @@ def set_min_to_zero(folded):
 	# Make the minimum magnitude phase 0 by subtracting min_phase; adjust all other phase values accordingly
 	zero.loc[:, 'Phase'] = zero.loc[:, 'Phase'].apply(lambda x: x - min_phase if x - min_phase >= 0 else x - min_phase + 1)
 	
+	# Plot here, if testing
 	if __name__ == '__main__':
+
+		# Before shift	
+		plt.figure(1)
+		plt.subplot(211)
+		plt.title('Before shifting to minimum mag at phase 0')
+		plt.scatter(folded['Phase'], folded['mag'])
+		plt.gca().invert_yaxis()
+		plt.ylabel('mag')
+		plt.xlabel('Phase')
+
+		# After shift
+		plt.subplot(212)
+		plt.title('After shifting to minimum mag at phase 0')
 		plt.scatter(zero['Phase'], zero['mag'])
 		plt.gca().invert_yaxis()
 		plt.ylabel('mag')
 		plt.xlabel('Phase')
+		plt.tight_layout()
 		plt.show()
 		
 	return epc, zero
