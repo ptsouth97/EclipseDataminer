@@ -62,6 +62,7 @@ def main():
 		# In the future, the fully automatic feature will make this decision based on machine learning
 		if auto_choice == '1':
 			pattern = '1'
+
 		else:
 			pattern=input('Continue analysis based on the plot of the raw data?[1]=Yes; [2]=No; [other key]=quit ').strip()
 			print('')
@@ -71,9 +72,11 @@ def main():
 		if pattern == '2':
 			os.remove(delete_unused_file)
 			continue
+
 		if pattern != '1':   
 			os.remove(delete_unused_file)
 			break
+
 
 		# create a new folder for the object and generate an empty dataframe to hold the analysis parameters
 		final_df, path = object_info.make_folder(name)
@@ -92,7 +95,7 @@ def main():
 		x_matches.to_csv('Possible_cross_ids.csv')
 		if new_name != 'Found nothing':
 			name = new_name
-
+	
 		# search for a frequency that yields an acceptable phase plot
 		freq, folded_df = lombscargle.find_freq(dat, name, auto_choice)
 		folded_df.to_csv('test_folded_df.csv')
