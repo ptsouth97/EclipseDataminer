@@ -18,8 +18,8 @@ import re
 def main():
 	'''main loop for unit testing 'cross_id' with sample coordinates'''
 
-	right_ascension = 262.103       # 272.279
-	declination = -40.22071         # -26.63787
+	right_ascension = 272.381145	# 272.279
+	declination = -32.42459			# -26.63787
 	field_name = 'BUL'
 	viz(right_ascension, declination, field_name)
 
@@ -63,8 +63,8 @@ def viz(ra, dec, fn):
 		if bool(re.search('Field', str(result[cat].columns))) == True:
 			field = int(result[cat]['Field'])
 			vno = int(result[cat]['Vno'])
-			a_nm = 'OGLEII DIA ' + fn + '-SC' + str(field) + ' V' + str(vno)
-			matches.iloc[0][0] = a_nm
+			nw_nm = 'OGLEII DIA ' + fn + '-SC' + str(field) + ' V' + str(vno)
+			matches.iloc[0][0] = nw_nm
 
 		elif  bool(re.search('2MASS', str(result[cat].columns))) == True and \
                         bool(re.search('Rflg', str(result[cat].columns))) == True:
