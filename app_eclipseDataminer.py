@@ -129,6 +129,7 @@ def main():
 		plt.title(name + ' (P = ' + str(period) + ' d)')
 		plt.grid()
 		plt_name = name + '_Phase_Diagram'
+		plt.tight_layout()
 		plt.savefig(plt_name)
 		if auto_choice != '1':
 			plt.show()
