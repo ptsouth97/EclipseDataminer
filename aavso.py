@@ -14,7 +14,7 @@ def main():
 
 
 def check_vsx(RA, DEC, close) -> object:
-	'''Checks coordinates in VSX to see if there is already an identified object at that location'''
+	'''Takes the objects coordinates and checks VSX to see if there is already an identified object at that location'''
 
 	# create a string with the given coordinates
 	coords = str(RA) + '+' + str(DEC)
@@ -41,18 +41,22 @@ def check_vsx(RA, DEC, close) -> object:
 	dist = float(results[3:7])
 	idx = results[11:37].strip()
 
+	# if no objects are found nearby, make 'answer' = '1' and proceed with analysis
 	if results[3:8] == 'There':
 		print('No nearby objects were found')
 		print('')
 		print('PROCEEDING WITH ANALYSIS...')
 		answer = '1'
 
+	# if objects are found do 1 of 2 things:
 	else:
 		print('The VSX object {} is located {} arcmin from the coordinates you entered'.format(idx, dist))
 		print('')
+		# 1) if the nearby object is within the specified distance, assume its the same object and move on
 		if dist < close:
 			answer = '0'
 			print('MOVING TO NEXT OBJECT...')
+		# 2) if the nearby object is NOT within the specified distance, assume its a different object and proceed
 		else:
 			answer = '1'
 			print('PROCEEDING WITH ANALYSIS...')
