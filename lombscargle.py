@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def main():
-	'''main loop for unit testing purposes'''
+	'''main function for unit testing purposes'''
 
 	n = 'Test Data'
 	rand = np.random.RandomState(42)

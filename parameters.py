@@ -3,11 +3,13 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
+import os
 
 
 def main():
 	'''main function for testing this module'''
 
+	os.chdir('./test_folder')
 	df = pd.read_csv('test_dataframe.csv')
 	find_min(df, 2)
 	find_max(df, 2)

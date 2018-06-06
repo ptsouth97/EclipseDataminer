@@ -3,11 +3,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import FormatStrFormatter
+import os
 
 
 def main():
 	'''main function for unit testing'''
 
+	os.chdir('./test_folder')
 	test = pd.read_csv('test_dat.csv')
 	name = 'Test'
 	auto = '2'
@@ -24,6 +26,8 @@ def plot_raw_data(df, nme, ac):
 
 	plt.gca().invert_yaxis()
 	plt.title(nme + ' Raw Data')
+	plt.xlabel('HJD')
+	plt.ylabel('mag')
 	plot_name = nme + '_Raw_Data.png'
 	plt.savefig(plot_name)
 	if ac != '1':

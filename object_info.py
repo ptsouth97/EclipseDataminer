@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 
 def main():
-	''' main loop for testing this module only'''
+	''' main function for testing this module only'''
 
 	nme = 'field=BUL_SC7&starid=362538&db=DIA&points=good'
 	get_data_from_web(nme)

@@ -3,10 +3,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.ticker import FormatStrFormatter
+import os
 
 
 def main():
 	'''main function for testing:  reads an example folded light curve dataframe '''
+
+	os.chdir('./test_folder')
 
 	print('Testing mode')
 	print('')
