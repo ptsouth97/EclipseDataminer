@@ -5,8 +5,10 @@ from bs4 import BeautifulSoup
 
 
 def main():
-	'''main loop for testing'''
+	'''main function for testing this module'''
 
+	print('TESTING...')
+	print('')
 	ra = 272.417942
 	dec = -32.556141
 	how_close = 1
