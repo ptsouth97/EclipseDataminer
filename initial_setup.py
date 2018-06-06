@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3
 
 import pandas as pd
 
@@ -7,7 +7,7 @@ def main():
 	'''testing'''
 
 	print('testing...')
-	set_up_df()
+	read_query()
 
 
 def read_query():
@@ -19,7 +19,7 @@ def read_query():
 	while True:
 		try:
 			if __name__ == '__main__':
-				txt_file = 'query_2017-10-18_19_39_03.txt'
+				txt_file = 'test_query.txt'
 			else:
 				txt_file = input('Enter the query text file name: ')
 
