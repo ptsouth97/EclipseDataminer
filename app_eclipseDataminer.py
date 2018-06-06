@@ -2,7 +2,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import object_info, aavso, lombscargle, cross_id, phase_adjustments, parameters, initial_setup
+import object_info, aavso, lombscargle, cross_id, phase_adjustments, parameters, initial_setup, plotting
 from matplotlib.ticker import FormatStrFormatter
 import shutil, os
 from pathlib import Path
@@ -55,7 +55,7 @@ def main():
 		# print(select_dat)
        
 		# Plot the raw data that was just pulled from the web
-		plot_raw_data(dat, name, auto_choice)
+		plotting.plot_raw_data(dat, name, auto_choice)
 		print('')
 
 		# At this point the user can decide whether or not to proceede based on their visual interpretation of the data
@@ -137,22 +137,6 @@ def main():
 		os.chdir(home)
 
 	print('Good bye...')
-
-
-def plot_raw_data(df, nme, ac):
-	'''plots the raw data as a test to ensure data was imported properly'''
-
-	fig, ax = plt.subplots()
-	ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-
-	plt.scatter(df['HJD'], df['mag'], color='black', s=5)  # 's' is for marker size
-
-	plt.gca().invert_yaxis()
-	plt.title(nme + ' Raw Data')
-	plot_name = nme + '_Raw_Data.png'
-	plt.savefig(plot_name)
-	if ac != '1':
-		plt.show()
 
 
 def print_header():
