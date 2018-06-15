@@ -35,11 +35,11 @@ def main():
 		# check AAVSO's index (VSX) to see if variable star already exists at given position; check_vsx returns '1' if none found
 		proceed = aavso.check_vsx(ra_d, dec_d, how_close)
 
-		# If there is already a nearby variable (nearby defined by 'how_close', move to the next object
+		# If there is already a nearby variable (nearby defined by 'how_close'), move to the next object
 		if proceed != '1':      
 			continue
 
-        # set the field name, star id (sid), and url of the object
+		# set the field name, star id (sid), and url of the object
 		field_nm = str(df.iloc[obj][0])
 		sid = str(df.iloc[obj][1])
 		print('The field name is ' + field_nm + ' and the star_id is ' + sid)
