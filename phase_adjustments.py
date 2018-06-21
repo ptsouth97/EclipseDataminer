@@ -114,18 +114,34 @@ def set_epoch(theDf, autoc):
 		theDf = theDf.sort_values('Phase')
 		primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
 		primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
-		primary_eclipse.reset_index(drop=True, inplace=True)    # re-order the index starting at 0
-		min_dp = primary_eclipse.mag.idxmax()   # min_dp is the index of the minima of the eclipse, i.e., max value
-		offset = 0                              # initialize variable for the offset that will be returned
-		flag = 0                                # flag variable will signal when to break out of loop once match is found
-		mk_1 = 0                                # mk_1 will hold the row location for the first match of the pair
-		mk_2 = 0                                # mk_2 will hold the row location for the second match of the pair
-		for i in range(0, min_dp + 1):          # check data points from index 0 up to the index of the minima (left side)
+
+		# re-order the index starting at 0
+		primary_eclipse.reset_index(drop=True, inplace=True)    
+
+		# min_dp is the index of the minima of the eclipse, i.e., max value
+		min_dp = primary_eclipse.mag.idxmax()   
+
+		# initialize variable for the offset that will be returned
+		offset = 0                              
+
+		# flag variable will signal when to break out of loop once match is found	
+		flag = 0                                
+
+		# mk_1 will hold the row location for the first match of the pair and mk_2 will do the same for the second match
+		mk_1 = 0                                 
+		mk_2 = 0                                
+
+		# check data points from index 0 up to the index of the minima (left side)
+		for i in range(0, min_dp + 1):         
 			if flag == 1:  break
-			for j in range(0, len(primary_eclipse.index) - min_dp): # for each point on left, check every right side point
+
+			# for each point on left, check every right side point
+			for j in range(0, len(primary_eclipse.index) - min_dp): 
 				if flag == 1: break
 				mag_diff = abs(primary_eclipse.iloc[i][1] - primary_eclipse.iloc[-j-1][1])
-				if mag_diff < 0.02:     # if the difference in mag is this small, you've found matching points on both sides
+
+				# if the difference in mag is this small, you've found matching points on both sides
+				if mag_diff < 0.02:    
 					offset = primary_eclipse.iloc[i][5] + \
 					((primary_eclipse.iloc[len(primary_eclipse.index) - j - 1][5] - primary_eclipse.iloc[i][5])/2)
 					mk_1 = i
