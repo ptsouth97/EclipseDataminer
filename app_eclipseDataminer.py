@@ -121,19 +121,6 @@ def main():
 
 		# plot finalized phase diagram
 		plotting.final_phase_diagram(phased, name, period, auto_choice)
-		'''fig, ax = plt.subplots()
-		ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
-		plt.scatter(phased['Phase'], phased['mag'], color='black', s=5)    # 's' is for marker size
-		plt.gca().invert_yaxis()
-		plt.ylabel('Ic-mag')
-		plt.xlabel('Phase')
-		plt.title(name + ' (P = ' + str(period) + ' d)')
-		plt.grid()
-		plt_name = name + '_Phase_Diagram'
-		plt.tight_layout()
-		plt.savefig(plt_name)
-		if auto_choice != '1':
-			plt.show()'''
 
 		os.chdir(home)
 
