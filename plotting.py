@@ -37,7 +37,7 @@ def plot_raw_data(df, nme, ac):
 def final_phase_diagram(phase_d, nm, per, a_c):
 	''' plots the final phase diagram'''
 
-	fig, ax = plt.subplots(nm)
+	fig, ax = plt.subplots()
 	ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
 	plt.scatter(phase_d['Phase'], phase_d['mag'], color='black', s=5)    # 's' is for marker size
 	plt.gca().invert_yaxis()
