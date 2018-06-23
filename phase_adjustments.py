@@ -18,11 +18,6 @@ def main():
 
 	set_min_to_zero(test_df)	
 
-	# TEST OTHER FUNCTIONS HERE
-	# add_phases(zd, atc)
-
-	# set_epoch(theDf, autoc)
-
 
 def set_min_to_zero(folded):
 	'''Finds the primary eclipse minima (i.e., largest magnitude) and sets that as phase 0 and adjusts other phase values
