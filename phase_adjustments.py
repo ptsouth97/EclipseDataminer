@@ -99,6 +99,7 @@ def set_epoch(theDf, autoc):
 	the eclipse from phase 0. To do this, two nearly equivalent magnitude points are located on opposite sides of
 	the parabola and the midway point between them is calculated.  This value represents the needed offset'''
 
+	# See if it's possible to use an if-statement to bypass the duration question, i.e., ask for EA, EB, or EW
 	while True:
 		while True:
 			if autoc == '1':
@@ -111,6 +112,7 @@ def set_epoch(theDf, autoc):
 				else:
 					print('Please enter a valid duration that is greater than 0 and less than 1')
 					print('')
+
 		theDf = theDf.sort_values('Phase')
 		primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
 		primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
