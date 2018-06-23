@@ -139,7 +139,7 @@ def set_epoch(theDf, autoc):
 		mk_1 = 0                                 
 		mk_2 = 0                                
 
-		# check data points from index 0 up to the index of the minima (left side)
+		# check data points from index 0 (start of eclipse) up to the index of the minima (i.e., the left descending side of the eclipse)
 		for i in range(0, min_dp + 1):         
 			if flag == 1:  break
 
