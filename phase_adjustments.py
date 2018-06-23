@@ -18,9 +18,14 @@ def main():
 
 	set_min_to_zero(test_df)	
 
+	# TEST OTHER FUNCTIONS HERE
+	# add_phases(zd, atc)
+
+	# set_epoch(theDf, autoc)
+
 
 def set_min_to_zero(folded):
-	'''Finds the primary eclipse (i.e., largest magnitude) and sets that as phase 0 and adjusts other phase values
+	'''Finds the primary eclipse minima (i.e., largest magnitude) and sets that as phase 0 and adjusts other phase values
 	accordingly'''
 	
 	# sort the magnitudes from biggest to smallest
@@ -97,7 +102,8 @@ def set_epoch(theDf, autoc):
 	'''Plots just the primary eclipse data points. Because the minimum magnitude observed does not necessarily
 	match the true minimum at phase 0, the data points need to be adjusted by looking at the offset of the shape of
 	the eclipse from phase 0. To do this, two nearly equivalent magnitude points are located on opposite sides of
-	the parabola and the midway point between them is calculated.  This value represents the needed offset'''
+	the parabola and the midway point between them is calculated.  This value represents the needed offset. This
+	offset is returned'''
 
 	# See if it's possible to use an if-statement to bypass the duration question, i.e., ask for EA, EB, or EW
 	while True:
@@ -181,6 +187,7 @@ def set_epoch(theDf, autoc):
 			print('')
 		if satisfactory == '1':
 			break
+
 	return offset
 
 
