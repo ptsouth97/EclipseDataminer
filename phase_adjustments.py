@@ -115,7 +115,11 @@ def set_epoch(theDf, autoc):
 					print('Please enter a valid duration that is greater than 0 and less than 1')
 					print('')
 
+		# sort the data frame by phase (i.e., -0.25 to 1.25)
 		theDf = theDf.sort_values('Phase')
+
+		# The primary eclipse is centered at phase = 0, so given the eclipse duration (dur) the primary eclipse
+		# data points are between -dur/2 and +dur/2 
 		primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
 		primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
 
