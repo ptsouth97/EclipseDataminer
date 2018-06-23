@@ -98,6 +98,10 @@ def add_phases(zd, atc):
 	if atc != '1':
 		plt.show()
 
+	# If TESTING, call next function
+	if __name__ == '__main__':
+		set_epoch(update2, 2)
+
 	return update2
 
 
@@ -111,7 +115,7 @@ def set_epoch(theDf, autoc):
 	# See if it's possible to use an if-statement to bypass the duration question, i.e., ask for EA, EB, or EW
 	while True:
 
-		# Get the duration of the eclipse (n/a for EB and EW types)
+		# Get the duration of the eclipse (n/a for EB and EW types; defaults to 0.2 in automatic mode)
 		while True:
 			if autoc == '1':
 				dur = float(0.2)
@@ -178,7 +182,7 @@ def set_epoch(theDf, autoc):
 		plt.ylabel('Ic-mag')
 		plt.xlabel('Phase')
 		plt.title('Red line should appear half-way between two yellow points')
-		plt.axvline(x=offset, color='red')                          # plot vertical line halfway between chosen data points
+		plt.axvline(x=offset, color='red')
 		plt.grid()
 		
 		if autoc == '1':
