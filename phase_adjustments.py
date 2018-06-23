@@ -61,6 +61,9 @@ def set_min_to_zero(folded):
 		plt.xlabel('Phase')
 		plt.tight_layout()
 		plt.show()
+
+		# use this new information to test the next function
+		add_phases(zero, 2)
 		
 	return epc, zero
 
