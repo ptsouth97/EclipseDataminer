@@ -101,6 +101,8 @@ def set_epoch(theDf, autoc):
 
 	# See if it's possible to use an if-statement to bypass the duration question, i.e., ask for EA, EB, or EW
 	while True:
+
+		# Get the duration of the eclipse (n/a for EB and EW types)
 		while True:
 			if autoc == '1':
 				dur = float(0.2)
