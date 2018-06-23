@@ -118,7 +118,7 @@ def set_epoch(theDf, autoc):
 		# sort the data frame by phase (i.e., -0.25 to 1.25)
 		theDf = theDf.sort_values('Phase')
 
-		# The primary eclipse is centered at phase = 0, so given the eclipse duration (dur) the primary eclipse
+		# The primary eclipse is centered near phase = 0, so given the eclipse duration (dur) the primary eclipse
 		# data points are between -dur/2 and +dur/2 
 		primary_eclipse_1 = theDf.loc[theDf.loc[:, 'Phase'] < float(dur)/2]
 		primary_eclipse = primary_eclipse_1.loc[primary_eclipse_1.loc[:, 'Phase'] > -float(dur)/2]
@@ -126,7 +126,7 @@ def set_epoch(theDf, autoc):
 		# re-order the index starting at 0
 		primary_eclipse.reset_index(drop=True, inplace=True)    
 
-		# min_dp is the index of the minima of the eclipse, i.e., max value
+		# min_dp is the index of the minima of the eclipse, i.e., maximum value since magnitude scale is inverted
 		min_dp = primary_eclipse.mag.idxmax()   
 
 		# initialize variable for the offset that will be returned
@@ -143,7 +143,7 @@ def set_epoch(theDf, autoc):
 		for i in range(0, min_dp + 1):         
 			if flag == 1:  break
 
-			# for each point on left, check every right side point
+			# for each point on the left descending of the eclipse, check every point on the right ascending side
 			for j in range(0, len(primary_eclipse.index) - min_dp): 
 				if flag == 1: break
 				mag_diff = abs(primary_eclipse.iloc[i][1] - primary_eclipse.iloc[-j-1][1])
@@ -159,6 +159,7 @@ def set_epoch(theDf, autoc):
 		if offset == 0:
 			print('No match found')
 
+		# Plot the eclipse portion of the light curve with the selected points highlighted in yellow with a red line between them
 		fig, ax = plt.subplots()
 		ax.yaxis.set_major_formatter(FormatStrFormatter('%0.2f'))
 		plt.scatter(primary_eclipse['Phase'], primary_eclipse['mag'])
