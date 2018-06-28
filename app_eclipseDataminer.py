@@ -51,7 +51,7 @@ def main():
 			continue
 
 		# Select only those data points graded as A, B, or C and exclude D, E, and F
-		# select_dat = dat.loc[dat['frame_grade'].isin(['A', 'B', 'C'])]
+		dat = dat.loc[dat['frame_grade'].isin(['A', 'B', 'C'])]
 		# print(select_dat)
        
 		# Plot the raw data that was just pulled from the web
@@ -96,6 +96,7 @@ def main():
 		if new_name != 'Found nothing':
 			name = new_name
 	
+		print('New name is ' + new_name)
 		# search for a frequency that yields an acceptable phase plot
 		freq, folded_df = lombscargle.find_freq(dat, name, auto_choice)
 		folded_df.to_csv('test_folded_df.csv')
@@ -119,6 +120,7 @@ def main():
 		final_df.iloc[0][4] = maximum
 		final_df.to_csv(name + '_Parameters.csv')
 
+		print('The name is ' + name)
 		# plot finalized phase diagram
 		plotting.final_phase_diagram(phased, name, period, auto_choice)
 

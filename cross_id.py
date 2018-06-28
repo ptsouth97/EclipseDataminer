@@ -64,6 +64,7 @@ def viz(ra, dec, fn):
 			field = int(result[cat]['Field'])
 			vno = int(result[cat]['Vno'])
 			nw_nm = 'OGLEII DIA ' + fn + '-SC' + str(field) + ' V' + str(vno)
+			print('The new name is ' + nw_nm)
 			matches.iloc[0][0] = nw_nm
 
 		elif  bool(re.search('2MASS', str(result[cat].columns))) == True and \
