@@ -111,17 +111,6 @@ def main():
 		# calculate relevant parameters, place in data frame, and then write to file
 		period = parameters.final_csv(freq, epoch, adj, phased, auto_choice, name, final_df)
 
-		'''period = round(1 / freq, 4)
-		epoch = round(epoch + period * adj, 3)
-		minimum = parameters.find_min(phased, auto_choice)
-		maximum = parameters.find_max(phased, auto_choice)
-		final_df.iloc[0][0] = name
-		final_df.iloc[0][1] = period
-		final_df.iloc[0][2] = epoch
-		final_df.iloc[0][3] = minimum
-		final_df.iloc[0][4] = maximum
-		final_df.to_csv(name + '_Parameters.csv')'''
-
 		print('The name is ' + name)
 		# plot finalized phase diagram
 		plotting.final_phase_diagram(phased, name, period, auto_choice)
