@@ -60,19 +60,21 @@ def find_max(dfx, full_auto):
 	return av
 
 
-def final_csv(frequency, adjustment, phased_df, choice):
+def final_csv(frequency, epc, adjustment, phased_df, choice, nme, fin_df):
 	''' calculate relevant parameters, place in data frame, and then write to file'''
 
 	period = round(1 / frequency, 4)
-	epoch = round(epoch + period * adjustment, 3)
+	epc = round(epc + period * adjustment, 3)
 	minimum = find_min(phased_df, choice)
 	maximum = find_max(phased_df, choice)
-	final_df.iloc[0][0] = name
-	final_df.iloc[0][1] = period
-	final_df.iloc[0][2] = epoch
-	final_df.iloc[0][3] = minimum
-	final_df.iloc[0][4] = maximum
-	final_df.to_csv(name + '_Parameters.csv')
+	fin_df.iloc[0][0] = nme
+	fin_df.iloc[0][1] = period
+	fin_df.iloc[0][2] = epc
+	fin_df.iloc[0][3] = minimum
+	fin_df.iloc[0][4] = maximum
+	fin_df.to_csv(nme + '_Parameters.csv')
+
+	return period
 
 
 if __name__ == '__main__':

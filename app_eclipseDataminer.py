@@ -109,7 +109,7 @@ def main():
 		phased.loc[:, 'Phase'] = phased.loc[:, 'Phase'].apply(lambda x: x - adj)
 
 		# calculate relevant parameters, place in data frame, and then write to file
-		parameters.final_csv(freq, adj, phased, auto_choice)
+		period = parameters.final_csv(freq, epoch, adj, phased, auto_choice, name, final_df)
 
 		'''period = round(1 / freq, 4)
 		epoch = round(epoch + period * adj, 3)
