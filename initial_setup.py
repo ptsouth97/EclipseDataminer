@@ -23,7 +23,8 @@ def read_query():
 			else:
 				txt_file = input('Enter the query text file name: ')
 
-			init_df = pd.read_csv(txt_file, comment='#', sep='\s+', header=None, names=head)
+			init_df = pd.read_csv(txt_file, comment='#', sep='\s+', header=None, names=head, index_col=False)
+			#init_df.set_index('Field', inplace=True, drop=False)
 			break
 
 		except ValueError:

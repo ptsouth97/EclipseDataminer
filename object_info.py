@@ -10,7 +10,11 @@ from bs4 import BeautifulSoup
 def main():
 	''' main function for testing this module only'''
 
-	nme = 'field=BUL_SC7&starid=362538&db=DIA&points=good'
+	# NEW name test
+	nme = "http://ogledb.astrouw.edu.pl/~ogle/photdb/getobj.php?db=DIA&points=good&f=BUL_SC8&s=485845&q=0EdW7Qeh2hueX_Br0Y6yMAQB6YW6qOtbFnEsaozdeBgd_QJXIn1ME8Sk1jDvAe2xu5YVV17GTDIWquBdX29ThtisDa23ZfrvNIupDCyERefG7TCzVvzjmiKPaRMpZBHlWOI_D2vzLpAUn2lHDd7T9Q--&pos=UWkvkn_JZwVoG3y0ft41V0v1xehGjyex7cMq0JzsmQXxVOq6CjiPz0U_5c9.l8P2s9Gva.E.Fc_A9XZLRMglIZQtZOBluAgl9j3iC7OKB2M-"
+
+	# OLD name test
+	# nme = 'field=BUL_SC7&starid=362538&db=DIA&points=good'
 	get_data_from_web(nme)
 
 
@@ -18,7 +22,12 @@ def set_name(field, star_id):
 	'''store basic information about the object of interest'''
     
 	path_id = 'OGLEII_' + field + '_' + star_id
-	url_id = 'field={}&starid={}&db=DIA&points=good'.format(field, star_id)
+
+	# New way of setting URL must be done manually
+	url_id = input("Copy and paste the appropriate URL here: ")
+
+	# Old way of setting the URL no longer works due to OGLE database encryption
+	# url_id = 'field={}&starid={}&db=DIA&points=good'.format(field, star_id)
 
 	print('The ID is: ' + path_id + ' and the url_id is ' + url_id)
 	print('')
@@ -50,8 +59,13 @@ def get_data_from_web(the_name):
 	'''Takes the object name and returns a .dat file with photometry data from OGLE database as a dataframe'''
 
 	while True:    
-		base = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/getobj.php?'
-		url = base + the_name
+		# NEW method
+		url = the_name		
+
+		# OLD method
+		# base = 'http://ogledb.astrouw.edu.pl/~ogle/photdb/getobj.php?'
+		# url = base + the_name
+
 		print('The url is ' + url)
 		r = requests.get(url)
 		html_doc = r.text

@@ -40,7 +40,7 @@ def main():
 			continue
 
 		# set the field name, star id (sid), and url of the object
-		field_nm = str(df.iloc[obj][0])
+		field_nm =  str(df.iloc[obj][0])
 		sid = str(df.iloc[obj][1])
 		print('The field name is ' + field_nm + ' and the star_id is ' + sid)
 		name, url = object_info.set_name(field_nm, sid)

@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
-from astropy.stats import LombScargle
+# OLD Lombscargle import statement:
+# from astropy.stats import LombScargle
+
+# NEW Lombscargle import statement:
+import astropy.stats.lombscargle
 import matplotlib.pyplot as plt
 import astropy.units as u
 import numpy as np
