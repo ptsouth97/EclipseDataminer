@@ -97,6 +97,7 @@ def main():
 			name = new_name
 	
 		print('New name is ' + new_name)
+
 		# search for a frequency that yields an acceptable phase plot
 		freq, folded_df = lombscargle.find_freq(dat, name, auto_choice)
 		folded_df.to_csv('test_folded_df.csv')

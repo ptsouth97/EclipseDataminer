@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 
 # OLD Lombscargle import statement:
-# from astropy.stats import LombScargle
+#from astropy.stats import LombScargle
 
 # NEW Lombscargle import statement:
-import astropy.stats.lombscargle
+from astropy.timeseries import LombScargle
+
 import matplotlib.pyplot as plt
 import astropy.units as u
 import numpy as np
