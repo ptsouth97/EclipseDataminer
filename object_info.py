@@ -29,7 +29,7 @@ def set_name(field, star_id):
 	# Old way of setting the URL no longer works due to OGLE database encryption
 	# url_id = 'field={}&starid={}&db=DIA&points=good'.format(field, star_id)
 
-	print('The ID is: ' + path_id + ' and the url_id is ' + url_id)
+	# print('The ID is: ' + path_id + ' and the url_id is ' + url_id)
 	print('')
 
 	return path_id, url_id
