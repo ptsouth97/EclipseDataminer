@@ -13,7 +13,7 @@ def main():
 def read_query():
 	'''Read the query file, create a new dataframe (df), and extract initial parameters'''
  
-	head = ['Field', 'StarID', 'StarCat', 'RA', 'Decl', 'Pgood', 'I', 'Isig', 'Imed', 'Imederr']
+	head = ['Field', 'StarID', 'StarCat', 'RA', 'Decl', 'Pgood', 'I', 'Isig', 'Imed', 'Imederr', 'Ndetect', 'vsx_id', 'vsx_type']
 
 	# read the query file and create a new dataframe -- init_df
 	while True:

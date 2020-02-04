@@ -67,7 +67,7 @@ def check_vsx(RA, DEC, close) -> object:
         
 	print('')
 	# returns 1 if no nearby objects found within specified distance; otherwise 0
-	return answer
+	return answer, idx, var_type
 
 
 if __name__ == '__main__':

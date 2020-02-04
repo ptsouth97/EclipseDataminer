@@ -33,7 +33,11 @@ def main():
 		dec_d = df.iloc[obj][4]
 		
 		# check AAVSO's index (VSX) to see if variable star already exists at given position; check_vsx returns '1' if none found
-		proceed = aavso.check_vsx(ra_d, dec_d, how_close)
+		proceed, vsx_name, vsx_type = aavso.check_vsx(ra_d, dec_d, how_close)
+
+		# append df with vsx star id and vsx star type
+		df.ix[obj, 'vsx_id'] = vsx_name
+		df.ix[obj, 'vsx_type'] = vsx_type
 
 		# If there is already a nearby variable (nearby defined by 'how_close'), move to the next object
 		if proceed != '1':      
@@ -58,7 +62,7 @@ def main():
 		plotting.plot_raw_data(dat, name, auto_choice)
 		print('')
 
-		# At this point the user can decide whether or not to proceede based on their visual interpretation of the data
+		# At this point the user can decide whether or not to proceed based on their visual interpretation of the data
 		# In the future, the fully automatic feature will make this decision based on machine learning
 		if auto_choice == '1':
 			pattern = '1'
@@ -117,6 +121,9 @@ def main():
 		plotting.final_phase_diagram(phased, name, period, auto_choice)
 
 		os.chdir(home)
+
+	# output df to csv file
+	df.to_csv('output.csv')
 
 	print('Good bye...')
 
