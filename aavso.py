@@ -42,7 +42,7 @@ def check_vsx(RA, DEC, close) -> object:
 	# convert the result into a string and slice the distance (dist) and object name (idx)
 	results = first_entry.get_text().lstrip(' ')                        
 	dist = float(results[3:7])
-	idx = results[11:37].strip()
+	idx = results[11:35].strip()
 	var_type = results[67:71].strip()
 
 	# if no objects are found nearby, make 'answer' = '1' and proceed with analysis
