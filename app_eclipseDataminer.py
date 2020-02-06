@@ -68,8 +68,10 @@ def main():
 			pattern = '1'
 
 		else:
-			pattern=input('Continue analysis based on the plot of the raw data?[1]=Yes; [2]=No; [other key]=quit ').strip()
-			print('')
+			# Skipping analysis to generate csv file with vsx id and type
+			# pattern=input('Continue analysis based on the plot of the raw data?[1]=Yes; [2]=No; [other key]=quit ').strip()
+			# print('')
+			pattern = '2'
 
 		delete_unused_file = name + '_Raw_Data.png'
 
